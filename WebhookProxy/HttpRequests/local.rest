@@ -1,9 +1,12 @@
-POST http://localhost:7089/api/handle/contract/valuation-v2/sender/quick-valuer/tenant/lovely-lender HTTP/1.1
+POST http://localhost:7089/api/handle/contract/test-v1/sender/quick-valuer/tenant/lovely-lender HTTP/1.1
 content-type: application/json
 
 {
-    "name": "sample",
-    "time": "Wed, 21 Oct 2015 18:27:50 GMT"
+    "userId": 12345,
+    "name": "John Doe",
+    "emailX": "johndoe@example.com",
+    "age": 30,
+    "isMember": true
 }
 
 ###
