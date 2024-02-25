@@ -23,7 +23,7 @@ namespace WebhookFunctionApp.Services.RequestValidation
 
             bool isValid = requestBodyJsonObject.IsValid(contractSchema, out IList<string> errorMessages);
 
-            return new RequestValidationResult { Invalid = !isValid, ErrorMessages = errorMessages };
+            return new RequestValidationResult { IsValid = isValid, ErrorMessages = errorMessages };
         }
     }
 }

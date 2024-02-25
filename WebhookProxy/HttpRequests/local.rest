@@ -1,13 +1,26 @@
-POST http://localhost:7089/api/handle/contract/test-v1/sender/quick-valuer/tenant/lovely-lender HTTP/1.1
+
+### Valid request
+
+POST http://localhost:7089/api/handle/contract/ValuationReportV1/sender/QuickValuationCo/tenant/LovelyLoans HTTP/1.1
+content-type: application/json
+x-request-id: {{$guid}}
+
+{
+    "userId": 12345,
+    "name": "John Doe",
+    "email": "johndoe@example.com",
+    "age": 30,
+    "isMember": true
+}
+
+### Invalid request
+
+POST http://localhost:7089/api/handle/contract/ValuationReportV1/sender/QuickValuationCo/tenant/LovelyLoans HTTP/1.1
 content-type: application/json
 
 {
     "userId": 12345,
     "name": "John Doe",
-    "emailX": "johndoe@example.com",
     "age": 30,
     "isMember": true
 }
-
-###
-
