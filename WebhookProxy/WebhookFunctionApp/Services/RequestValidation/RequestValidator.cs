@@ -13,13 +13,12 @@ namespace WebhookFunctionApp.Services.RequestValidation
     public partial class RequestValidator : IRequestValidator
     {
 
-        public RequestValidationResult Validate(string contractId, Stream requestBodyStream)
+        public RequestValidationResult Validate(string contractId, string requestBody)
         {
             var contractSchemaJson = EmbeddedResourceReader.ReadEmbeddedFile($"WebhookFunctionApp.Schemas.{contractId}.json");
             var contractSchema = JSchema.Parse(contractSchemaJson);
 
-            var requestBodyJson = StreamToStringConverter.ConvertStreamToString(requestBodyStream);
-            var requestBodyJsonObject = JObject.Parse(requestBodyJson);
+            var requestBodyJsonObject = JObject.Parse(requestBody);
 
             bool isValid = requestBodyJsonObject.IsValid(contractSchema, out IList<string> errorMessages);
 

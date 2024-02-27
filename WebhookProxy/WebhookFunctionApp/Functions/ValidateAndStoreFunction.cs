@@ -5,6 +5,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using WebhookFunctionApp.Services.RequestStorage;
 using WebhookFunctionApp.Services.RequestValidation;
+using static WebhookFunctionApp.Services.RequestValidation.RequestValidator;
 
 namespace WebhookFunctionApp.Functions
 {
@@ -34,7 +35,9 @@ namespace WebhookFunctionApp.Functions
                 "FUNCTION_START: {FunctionName} (contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}])",
                 FUNCTION_NAME, contractId, senderId, tenantId);
 
-            var validationResult = _requestValidator.Validate(contractId, req.Body);
+            var requestBodyJson = StreamToStringConverter.ConvertStreamToString(req.Body);
+
+            var validationResult = _requestValidator.Validate(contractId, requestBodyJson);
 
             HttpResponseData response =
                 validationResult.IsValid

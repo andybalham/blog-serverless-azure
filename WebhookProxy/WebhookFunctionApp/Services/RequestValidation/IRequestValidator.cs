@@ -2,6 +2,6 @@
 {
     public interface IRequestValidator
     {
-        RequestValidationResult Validate(string contractId, Stream requestBodyStream);
+        RequestValidationResult Validate(string contractId, string requestBody);
     }
 }
