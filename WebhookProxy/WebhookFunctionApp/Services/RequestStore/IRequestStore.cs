@@ -6,6 +6,6 @@ namespace WebhookFunctionApp.Services.RequestStorage
     {
         void PutValidRequest(HttpRequestData req, string contractId, string senderId, string tenantId);
 
-        void PutInvalidRequest(HttpRequestData req, string contractId, string senderId, string tenantId, IList<string> errorMessages);
+        void PutInvalidRequest(HttpRequestData req, string contractId, string senderId, string tenantId, IList<string>? errorMessages);
     }
 }

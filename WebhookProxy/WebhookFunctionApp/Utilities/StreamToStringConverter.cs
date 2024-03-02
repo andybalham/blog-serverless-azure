@@ -1,4 +1,5 @@
-﻿namespace WebhookFunctionApp.Services.RequestValidation
+﻿
+namespace WebhookFunctionApp.Services.RequestValidation
 {
     public partial class RequestValidator
     {
@@ -6,6 +7,11 @@
         {
             public static string ConvertStreamToString(Stream stream)
             {
+                if (stream is null)
+                {
+                    throw new ArgumentNullException(nameof(stream));
+                }
+
                 // Reset the stream position to the beginning (if the stream supports seeking)
                 if (stream.CanSeek)
                 {

@@ -3,11 +3,13 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Newtonsoft.Json;
 using System.Diagnostics.Contracts;
 using System.Net;
 using WebhookFunctionApp.Functions;
 using WebhookFunctionApp.Services.RequestStorage;
 using WebhookFunctionApp.Services.RequestValidation;
+using static WebhookFunctionApp.Services.RequestValidation.RequestValidator;
 
 namespace WebhookTests
 {
@@ -100,6 +102,16 @@ namespace WebhookTests
             response.Should().NotBeNull();
 
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+            var expectedErrors =
+                JsonConvert.DeserializeObject(
+                    JsonConvert.SerializeObject(requestValidationResult.ErrorMessages));
+
+            var actualErrors =
+                JsonConvert.DeserializeObject(
+                    StreamToStringConverter.ConvertStreamToString(response.Body));
+
+            actualErrors.Should().BeEquivalentTo(expectedErrors);
 
             mockRequestStore.Verify(rs =>
                 rs.PutInvalidRequest(

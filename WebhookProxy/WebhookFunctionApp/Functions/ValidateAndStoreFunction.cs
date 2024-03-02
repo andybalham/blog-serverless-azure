@@ -3,6 +3,7 @@ using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using WebhookFunctionApp.Services.RequestStorage;
 using WebhookFunctionApp.Services.RequestValidation;
 using static WebhookFunctionApp.Services.RequestValidation.RequestValidator;
@@ -63,13 +64,16 @@ namespace WebhookFunctionApp.Functions
         }
 
         private HttpResponseData HandleInvalidRequest(
-            HttpRequestData req, string contractId, string senderId, string tenantId, IList<string> errorMessages)
+            HttpRequestData req, string contractId, string senderId, string tenantId, IList<string>? errorMessages)
         {
             _requestStore.PutInvalidRequest(req, contractId, senderId, tenantId, errorMessages);
 
+            var responseBodyJson = JsonConvert.SerializeObject(errorMessages ?? new List<string>(), Formatting.Indented);
+
             HttpResponseData response = req.CreateResponse(HttpStatusCode.BadRequest);
             response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
-            response.WriteString("Bad Request");
+            response.WriteString(responseBodyJson);
+
             return response;
         }
     }

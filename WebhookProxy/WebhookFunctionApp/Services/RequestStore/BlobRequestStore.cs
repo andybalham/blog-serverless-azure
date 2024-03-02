@@ -19,7 +19,7 @@ namespace WebhookFunctionApp.Services.RequestStorage
         }
         // TODO: Store the requests under requests/[valid|invalid]/{senderId}/{date:yyyy-mm-dd}/{date-time:yyyymmdd-hhmm}-{tenantId}-{contractId}.json
 
-        public void PutInvalidRequest(HttpRequestData req, string contractId, string senderId, string tenantId, IList<string> errorMessages)
+        public void PutInvalidRequest(HttpRequestData req, string contractId, string senderId, string tenantId, IList<string>? errorMessages)
         {
             // TODO: Implement this
             _logger.LogDebug($"{nameof(PutInvalidRequest)} called");
