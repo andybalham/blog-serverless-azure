@@ -5,7 +5,7 @@ VisualStudioVersion = 17.9.34607.119
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebhookFunctionApp", "WebhookFunctionApp\WebhookFunctionApp.csproj", "{86444332-F3A8-45A5-9A62-28BCD86332FC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebhookTests", "WebhookTests\WebhookTests.csproj", "{18989FF3-B480-4A31-A719-9AFA1F1E4CF3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebhookTests", "WebhookTests\WebhookTests.csproj", "{18989FF3-B480-4A31-A719-9AFA1F1E4CF3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

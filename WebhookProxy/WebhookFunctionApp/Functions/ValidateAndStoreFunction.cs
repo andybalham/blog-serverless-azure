@@ -10,23 +10,27 @@ using WebhookFunctionApp.Utilities;
 
 namespace WebhookFunctionApp.Functions;
 
-public class ValidateAndStoreFunction(ILoggerFactory loggerFactory, IRequestValidator requestValidator, IRequestStore requestStore)
+public class ValidateAndStoreFunction(ILoggerFactory loggerFactory,
+                                      IRequestValidator requestValidator,
+                                      IRequestStore requestStore)
 {
-    private const string FUNCTION_NAME = "ValidateAndStore";
-
     private readonly ILogger _logger = loggerFactory.CreateLogger<ValidateAndStoreFunction>();
     private readonly IRequestValidator _requestValidator = requestValidator;
     private readonly IRequestStore _requestStore = requestStore;
 
+    private const string FUNCTION_NAME = "ValidateAndStore";
+
     [Function(FUNCTION_NAME)]
     public HttpResponseData Run(
-        [HttpTrigger(AuthorizationLevel.Function, 
-            "post", Route = "handle/contract/{contractId}/sender/{senderId}/tenant/{tenantId}"
-        )] HttpRequestData req,
-        string contractId, string senderId, string tenantId)
+        [HttpTrigger(AuthorizationLevel.Function, "post", 
+            Route = "handle/contract/{contractId}/sender/{senderId}/tenant/{tenantId}")] HttpRequestData req,
+        string contractId, 
+        string senderId, 
+        string tenantId, FunctionContext executionContext)
     {
         _logger.LogInformation(
-            "FUNCTION_START: {FunctionName} (contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}])",
+            "FUNCTION_START: {FunctionName} " +
+            "(contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}])",
             FUNCTION_NAME, contractId, senderId, tenantId);
 
         var requestBodyJson = StreamToStringConverter.ConvertStreamToString(req.Body);
@@ -36,17 +40,21 @@ public class ValidateAndStoreFunction(ILoggerFactory loggerFactory, IRequestVali
         HttpResponseData response =
             validationResult.IsValid
                 ? HandleValidRequest(req, contractId, senderId, tenantId)
-                : HandleInvalidRequest(req, contractId, senderId, tenantId, validationResult.ErrorMessages);
+                : HandleInvalidRequest(
+                    req, contractId, senderId, tenantId, validationResult.ErrorMessages);
 
         _logger.LogInformation(
-            "FUNCTION_END: {FunctionName} => {StatusCode} (contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}])",
+            "FUNCTION_END: {FunctionName} => {StatusCode} " +
+            "(contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}])",
             FUNCTION_NAME, response.StatusCode, contractId, senderId, tenantId);
 
         return response;
     }
 
-    private HttpResponseData HandleValidRequest(
-        HttpRequestData req, string contractId, string senderId, string tenantId)
+    private HttpResponseData HandleValidRequest(HttpRequestData req,
+                                                string contractId,
+                                                string senderId,
+                                                string tenantId)
     {
         _requestStore.PutValidRequest(req, contractId, senderId, tenantId);
 
@@ -56,8 +64,11 @@ public class ValidateAndStoreFunction(ILoggerFactory loggerFactory, IRequestVali
         return response;
     }
 
-    private HttpResponseData HandleInvalidRequest(
-        HttpRequestData req, string contractId, string senderId, string tenantId, IList<string>? errorMessages)
+    private HttpResponseData HandleInvalidRequest(HttpRequestData req,
+                                                  string contractId,
+                                                  string senderId,
+                                                  string tenantId,
+                                                  IList<string>? errorMessages)
     {
         _requestStore.PutInvalidRequest(req, contractId, senderId, tenantId, errorMessages);
 

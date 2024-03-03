@@ -1,0 +1,7 @@
+
+### Simple request
+
+GET {{host}}/api/simplefunction HTTP/1.1
+content-type: application/json
+x-request-id: {{$guid}}
+x-functions-key: {{simpleFunctionApiKey}}
