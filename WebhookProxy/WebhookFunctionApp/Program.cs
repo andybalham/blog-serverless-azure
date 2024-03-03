@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using WebhookFunctionApp.Services.RequestStorage;
+using WebhookFunctionApp.Services.RequestStore;
 using WebhookFunctionApp.Services.RequestValidation;
 
 var host = new HostBuilder()

@@ -4,77 +4,69 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using WebhookFunctionApp.Services.RequestStorage;
+using WebhookFunctionApp.Services.RequestStore;
 using WebhookFunctionApp.Services.RequestValidation;
-using static WebhookFunctionApp.Services.RequestValidation.RequestValidator;
+using WebhookFunctionApp.Utilities;
 
-namespace WebhookFunctionApp.Functions
+namespace WebhookFunctionApp.Functions;
+
+public class ValidateAndStoreFunction(ILoggerFactory loggerFactory, IRequestValidator requestValidator, IRequestStore requestStore)
 {
-    public class ValidateAndStoreFunction
+    private const string FUNCTION_NAME = "ValidateAndStore";
+
+    private readonly ILogger _logger = loggerFactory.CreateLogger<ValidateAndStoreFunction>();
+    private readonly IRequestValidator _requestValidator = requestValidator;
+    private readonly IRequestStore _requestStore = requestStore;
+
+    [Function(FUNCTION_NAME)]
+    public HttpResponseData Run(
+        [HttpTrigger(AuthorizationLevel.Function, 
+            "post", Route = "handle/contract/{contractId}/sender/{senderId}/tenant/{tenantId}"
+        )] HttpRequestData req,
+        string contractId, string senderId, string tenantId)
     {
-        private const string FUNCTION_NAME = "ValidateAndStore";
+        _logger.LogInformation(
+            "FUNCTION_START: {FunctionName} (contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}])",
+            FUNCTION_NAME, contractId, senderId, tenantId);
 
-        private readonly ILogger _logger;
-        private readonly IRequestValidator _requestValidator;
-        private readonly IRequestStore _requestStore;
+        var requestBodyJson = StreamToStringConverter.ConvertStreamToString(req.Body);
 
-        public ValidateAndStoreFunction(ILoggerFactory loggerFactory, IRequestValidator requestValidator, IRequestStore requestStore)
-        {
-            _logger = loggerFactory.CreateLogger<ValidateAndStoreFunction>();
-            _requestValidator = requestValidator;
-            _requestStore = requestStore;
-        }
+        var validationResult = _requestValidator.Validate(contractId, requestBodyJson);
 
-        [Function(FUNCTION_NAME)]
-        public HttpResponseData Run(
-            [HttpTrigger(AuthorizationLevel.Function, 
-                "post", Route = "handle/contract/{contractId}/sender/{senderId}/tenant/{tenantId}"
-            )] HttpRequestData req,
-            string contractId, string senderId, string tenantId)
-        {
-            _logger.LogInformation(
-                "FUNCTION_START: {FunctionName} (contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}])",
-                FUNCTION_NAME, contractId, senderId, tenantId);
+        HttpResponseData response =
+            validationResult.IsValid
+                ? HandleValidRequest(req, contractId, senderId, tenantId)
+                : HandleInvalidRequest(req, contractId, senderId, tenantId, validationResult.ErrorMessages);
 
-            var requestBodyJson = StreamToStringConverter.ConvertStreamToString(req.Body);
+        _logger.LogInformation(
+            "FUNCTION_END: {FunctionName} => {StatusCode} (contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}])",
+            FUNCTION_NAME, response.StatusCode, contractId, senderId, tenantId);
 
-            var validationResult = _requestValidator.Validate(contractId, requestBodyJson);
+        return response;
+    }
 
-            HttpResponseData response =
-                validationResult.IsValid
-                    ? HandleValidRequest(req, contractId, senderId, tenantId)
-                    : HandleInvalidRequest(req, contractId, senderId, tenantId, validationResult.ErrorMessages);
+    private HttpResponseData HandleValidRequest(
+        HttpRequestData req, string contractId, string senderId, string tenantId)
+    {
+        _requestStore.PutValidRequest(req, contractId, senderId, tenantId);
 
-            _logger.LogInformation(
-                "FUNCTION_END: {FunctionName} => {StatusCode} (contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}])",
-                FUNCTION_NAME, response.StatusCode, contractId, senderId, tenantId);
+        HttpResponseData response = req.CreateResponse(HttpStatusCode.Created);
+        response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
+        response.WriteString("Created");
+        return response;
+    }
 
-            return response;
-        }
+    private HttpResponseData HandleInvalidRequest(
+        HttpRequestData req, string contractId, string senderId, string tenantId, IList<string>? errorMessages)
+    {
+        _requestStore.PutInvalidRequest(req, contractId, senderId, tenantId, errorMessages);
 
-        private HttpResponseData HandleValidRequest(
-            HttpRequestData req, string contractId, string senderId, string tenantId)
-        {
-            _requestStore.PutValidRequest(req, contractId, senderId, tenantId);
+        var responseBodyJson = JsonConvert.SerializeObject(errorMessages ?? [], Formatting.Indented);
 
-            HttpResponseData response = req.CreateResponse(HttpStatusCode.Created);
-            response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
-            response.WriteString("Created");
-            return response;
-        }
+        HttpResponseData response = req.CreateResponse(HttpStatusCode.BadRequest);
+        response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
+        response.WriteString(responseBodyJson);
 
-        private HttpResponseData HandleInvalidRequest(
-            HttpRequestData req, string contractId, string senderId, string tenantId, IList<string>? errorMessages)
-        {
-            _requestStore.PutInvalidRequest(req, contractId, senderId, tenantId, errorMessages);
-
-            var responseBodyJson = JsonConvert.SerializeObject(errorMessages ?? new List<string>(), Formatting.Indented);
-
-            HttpResponseData response = req.CreateResponse(HttpStatusCode.BadRequest);
-            response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
-            response.WriteString(responseBodyJson);
-
-            return response;
-        }
+        return response;
     }
 }

@@ -7,119 +7,120 @@ using Newtonsoft.Json;
 using System.Diagnostics.Contracts;
 using System.Net;
 using WebhookFunctionApp.Functions;
-using WebhookFunctionApp.Services.RequestStorage;
+using WebhookFunctionApp.Models;
+using WebhookFunctionApp.Services.RequestStore;
 using WebhookFunctionApp.Services.RequestValidation;
-using static WebhookFunctionApp.Services.RequestValidation.RequestValidator;
+using WebhookFunctionApp.Utilities;
+using WebhookTests.Mocks;
 
-namespace WebhookTests
+namespace WebhookTests;
+
+public class ValidateAndStoreFunctionTests
 {
-    public class ValidateAndStoreFunctionTests
+    private readonly Mock<ILoggerFactory> _mockLoggerFactory;
+    private readonly Mock<IRequestValidator> _mockRequestValidator;
+
+    public ValidateAndStoreFunctionTests()
     {
-        private Mock<ILoggerFactory> _mockLoggerFactory;
-        private Mock<IRequestValidator> _mockRequestValidator;
+        _mockLoggerFactory = new Mock<ILoggerFactory>();
+        _mockLoggerFactory.Setup(lf => lf
+            .CreateLogger(It.IsAny<string>()))
+            .Returns(new Mock<ILogger>().Object);
 
-        public ValidateAndStoreFunctionTests()
-        {
-            _mockLoggerFactory = new Mock<ILoggerFactory>();
-            _mockLoggerFactory.Setup(lf => lf
-                .CreateLogger(It.IsAny<string>()))
-                .Returns(new Mock<ILogger>().Object);
+        _mockRequestValidator = new Mock<IRequestValidator>();
+    }
 
-            _mockRequestValidator = new Mock<IRequestValidator>();
-        }
+    [Fact]
+    public void ValidRequest_CreatedResponse_StoredAsValid()
+    {
+        // Arrange
 
-        [Fact]
-        public void ValidRequest_CreatedResponse_StoredAsValid()
-        {
-            // Arrange
+        const string ExpectedContractId = "contractId";
+        const string ExpectedSenderId = "senderId";
+        const string ExpectedTenantId = "tenantId";
 
-            const string ExpectedContractId = "contractId";
-            const string ExpectedSenderId = "senderId";
-            const string ExpectedTenantId = "tenantId";
+        var requestValidationResult = new RequestValidationResult { IsValid = true };
 
-            var requestValidationResult = new RequestValidationResult { IsValid = true };
+        _mockRequestValidator.Setup(rv => rv
+            .Validate(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(requestValidationResult);
 
-            _mockRequestValidator.Setup(rv => rv
-                .Validate(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(requestValidationResult);
+        var mockRequestStore = new Mock<IRequestStore>();
 
-            var mockRequestStore = new Mock<IRequestStore>();
+        var validateAndStoreSUT = new ValidateAndStoreFunction(
+            _mockLoggerFactory.Object, _mockRequestValidator.Object, mockRequestStore.Object);
 
-            var validateAndStoreSUT = new ValidateAndStoreFunction(
-                _mockLoggerFactory.Object, _mockRequestValidator.Object, mockRequestStore.Object);
+        // Act
 
-            // Act
+        var response = 
+            validateAndStoreSUT.Run(new MockHttpRequestData(new { }), ExpectedContractId, ExpectedSenderId, ExpectedTenantId);
 
-            var response = 
-                validateAndStoreSUT.Run(new MockHttpRequestData(new { }), ExpectedContractId, ExpectedSenderId, ExpectedTenantId);
+        // Assert
 
-            // Assert
+        response.Should().NotBeNull();
 
-            response.Should().NotBeNull();
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
-            response.StatusCode.Should().Be(HttpStatusCode.Created);
+        mockRequestStore.Verify(rs => 
+            rs.PutValidRequest(
+                It.IsAny<HttpRequestData>(), 
+                It.Is<string>(p => p == ExpectedContractId), 
+                It.Is<string>(p => p == ExpectedSenderId), 
+                It.Is<string>(p => p == ExpectedTenantId)));
+    }
 
-            mockRequestStore.Verify(rs => 
-                rs.PutValidRequest(
-                    It.IsAny<HttpRequestData>(), 
-                    It.Is<string>(p => p == ExpectedContractId), 
-                    It.Is<string>(p => p == ExpectedSenderId), 
-                    It.Is<string>(p => p == ExpectedTenantId)));
-        }
+    [Fact]
+    public void InvalidRequest_BadRequestResponseWithErrors_StoredAsInvalid()
+    {
+        // Arrange
 
-        [Fact]
-        public void InvalidRequest_BadRequestResponseWithErrors_StoredAsInvalid()
-        {
-            // Arrange
+        const string ExpectedContractId = "contractId";
+        const string ExpectedSenderId = "senderId";
+        const string ExpectedTenantId = "tenantId";
 
-            const string ExpectedContractId = "contractId";
-            const string ExpectedSenderId = "senderId";
-            const string ExpectedTenantId = "tenantId";
+        var requestValidationResult = 
+            new RequestValidationResult 
+            { 
+                IsValid = false,
+                ErrorMessages = ["Missing properties"]
+            };
 
-            var requestValidationResult = 
-                new RequestValidationResult 
-                { 
-                    IsValid = false,
-                    ErrorMessages = new List<string> { "Missing properties" }
-                };
+        _mockRequestValidator.Setup(rv => rv
+            .Validate(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(requestValidationResult);
 
-            _mockRequestValidator.Setup(rv => rv
-                .Validate(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(requestValidationResult);
+        var mockRequestStore = new Mock<IRequestStore>();
 
-            var mockRequestStore = new Mock<IRequestStore>();
+        var validateAndStoreSUT = new ValidateAndStoreFunction(
+            _mockLoggerFactory.Object, _mockRequestValidator.Object, mockRequestStore.Object);
 
-            var validateAndStoreSUT = new ValidateAndStoreFunction(
-                _mockLoggerFactory.Object, _mockRequestValidator.Object, mockRequestStore.Object);
+        // Act
 
-            // Act
+        var response =
+            validateAndStoreSUT.Run(new MockHttpRequestData(new { }), ExpectedContractId, ExpectedSenderId, ExpectedTenantId);
 
-            var response =
-                validateAndStoreSUT.Run(new MockHttpRequestData(new { }), ExpectedContractId, ExpectedSenderId, ExpectedTenantId);
+        // Assert
 
-            // Assert
+        response.Should().NotBeNull();
 
-            response.Should().NotBeNull();
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
-            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var expectedErrors =
+            JsonConvert.DeserializeObject(
+                JsonConvert.SerializeObject(requestValidationResult.ErrorMessages));
 
-            var expectedErrors =
-                JsonConvert.DeserializeObject(
-                    JsonConvert.SerializeObject(requestValidationResult.ErrorMessages));
+        var actualErrors =
+            JsonConvert.DeserializeObject(
+                StreamToStringConverter.ConvertStreamToString(response.Body));
 
-            var actualErrors =
-                JsonConvert.DeserializeObject(
-                    StreamToStringConverter.ConvertStreamToString(response.Body));
+        actualErrors.Should().BeEquivalentTo(expectedErrors);
 
-            actualErrors.Should().BeEquivalentTo(expectedErrors);
-
-            mockRequestStore.Verify(rs =>
-                rs.PutInvalidRequest(
-                    It.IsAny<HttpRequestData>(),
-                    It.Is<string>(p => p == ExpectedContractId),
-                    It.Is<string>(p => p == ExpectedSenderId),
-                    It.Is<string>(p => p == ExpectedTenantId),
-                    It.Is<IList<string>>(p => p == requestValidationResult.ErrorMessages)));
-        }
+        mockRequestStore.Verify(rs =>
+            rs.PutInvalidRequest(
+                It.IsAny<HttpRequestData>(),
+                It.Is<string>(p => p == ExpectedContractId),
+                It.Is<string>(p => p == ExpectedSenderId),
+                It.Is<string>(p => p == ExpectedTenantId),
+                It.Is<IList<string>>(p => p == requestValidationResult.ErrorMessages)));
     }
 }

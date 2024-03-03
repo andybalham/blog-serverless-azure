@@ -1,7 +1,8 @@
-﻿namespace WebhookFunctionApp.Services.RequestValidation
+﻿using WebhookFunctionApp.Models;
+
+namespace WebhookFunctionApp.Services.RequestValidation;
+
+public interface IRequestValidator
 {
-    public interface IRequestValidator
-    {
-        RequestValidationResult Validate(string contractId, string requestBody);
-    }
+    RequestValidationResult Validate(string contractId, string requestBody);
 }

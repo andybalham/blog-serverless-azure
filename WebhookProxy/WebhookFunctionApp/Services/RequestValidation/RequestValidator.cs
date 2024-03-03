@@ -6,23 +6,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using WebhookFunctionApp.Models;
 using WebhookFunctionApp.Utilities;
 
-namespace WebhookFunctionApp.Services.RequestValidation
+namespace WebhookFunctionApp.Services.RequestValidation;
+
+public class RequestValidator : IRequestValidator
 {
-    public partial class RequestValidator : IRequestValidator
+    public RequestValidationResult Validate(string contractId, string requestBody)
     {
+        var contractSchemaJson = EmbeddedResourceReader.ReadEmbeddedFile($"WebhookFunctionApp.Schemas.{contractId}.json");
+        var contractSchema = JSchema.Parse(contractSchemaJson);
 
-        public RequestValidationResult Validate(string contractId, string requestBody)
-        {
-            var contractSchemaJson = EmbeddedResourceReader.ReadEmbeddedFile($"WebhookFunctionApp.Schemas.{contractId}.json");
-            var contractSchema = JSchema.Parse(contractSchemaJson);
+        var requestBodyJsonObject = JObject.Parse(requestBody);
 
-            var requestBodyJsonObject = JObject.Parse(requestBody);
+        bool isValid = requestBodyJsonObject.IsValid(contractSchema, out IList<string> errorMessages);
 
-            bool isValid = requestBodyJsonObject.IsValid(contractSchema, out IList<string> errorMessages);
-
-            return new RequestValidationResult { IsValid = isValid, ErrorMessages = errorMessages };
-        }
+        return new RequestValidationResult { IsValid = isValid, ErrorMessages = errorMessages };
     }
 }

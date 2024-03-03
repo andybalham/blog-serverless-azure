@@ -1,25 +1,51 @@
 ﻿{
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "User Profile",
+  "title": "Valuation Report",
   "type": "object",
   "properties": {
-    "userId": {
-      "type": "integer"
-    },
-    "name": {
+    "reportId": {
       "type": "string"
     },
-    "email": {
+    "date": {
       "type": "string",
-      "format": "email"
+      "format": "date"
     },
-    "age": {
-      "type": "integer",
-      "minimum": 0
+    "propertyAddress": {
+      "type": "string"
     },
-    "isMember": {
-      "type": "boolean"
+    "ownerName": {
+      "type": "string"
+    },
+    "estimatedValue": {
+      "type": "number"
+    },
+    "valuationMethod": {
+      "type": "string"
+    },
+    "appraiser": {
+      "type": "string"
+    },
+    "appraiserContact": {
+      "type": "string"
+    },
+    "landArea": {
+      "type": "number"
+    },
+    "buildingArea": {
+      "type": "number"
     }
   },
-  "required": [ "userId", "name", "email", "age", "isMember" ]
+  "required": [
+    "reportId",
+    "date",
+    "propertyAddress",
+    "ownerName",
+    "estimatedValue",
+    "valuationMethod",
+    "appraiser",
+    "appraiserContact",
+    "landArea",
+    "buildingArea"
+  ],
+  "additionalProperties": false
 }

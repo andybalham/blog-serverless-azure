@@ -4,9 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WebhookFunctionApp
+namespace WebhookFunctionApp;
+
+internal class Startup
 {
-    internal class Startup
-    {
-    }
 }
