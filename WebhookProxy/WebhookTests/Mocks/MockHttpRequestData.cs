@@ -1,18 +1,14 @@
 ﻿using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using Moq;
 using Newtonsoft.Json;
 using System.Security.Claims;
 
 namespace WebhookTests.Mocks;
 
-internal class MockHttpRequestData : HttpRequestData
+internal class MockHttpRequestData(object bodyObject) : HttpRequestData(new Mock<FunctionContext>().Object)
 {
-    private readonly string _bodyJson;
-
-    public MockHttpRequestData(object bodyObject) : base(new MockFunctionContext())
-    {
-        _bodyJson = JsonConvert.SerializeObject(bodyObject);
-    }
+    private readonly string _bodyJson = JsonConvert.SerializeObject(bodyObject);
 
     public override Stream Body => GetStringAsStream(_bodyJson);
 
@@ -31,7 +27,7 @@ internal class MockHttpRequestData : HttpRequestData
         return new MockHttpResponseData();
     }
 
-    private Stream GetStringAsStream(string input)
+    private static Stream GetStringAsStream(string input)
     {
         var stream = new MemoryStream();
         var writer = new StreamWriter(stream);

@@ -1,12 +1,13 @@
 ﻿using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using Moq;
 using System.Net;
 
 namespace WebhookTests.Mocks;
 
 internal class MockHttpResponseData : HttpResponseData
 {
-    public MockHttpResponseData() : base(new MockFunctionContext())
+    public MockHttpResponseData() : base(new Mock<FunctionContext>().Object)
     {
         Body = new MemoryStream();
     }
