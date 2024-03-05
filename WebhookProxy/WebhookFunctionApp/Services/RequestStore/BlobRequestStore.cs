@@ -1,5 +1,4 @@
-﻿using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,13 +13,17 @@ public class BlobRequestStore(ILoggerFactory loggerFactory) : IRequestStore
 
     // TODO: Store the requests under requests/[valid|invalid]/{senderId}/{date:yyyy-mm-dd}/{date-time:yyyymmdd-hhmm}-{tenantId}-{contractId}.json
 
-    public void PutInvalidRequest(HttpRequestData req, string contractId, string senderId, string tenantId, IList<string>? errorMessages)
+    public void PutInvalidRequest(
+        IEnumerable<Tuple<string, string>> requestHeaders, string requestBody, 
+        string contractId, string senderId, string tenantId, IList<string>? errorMessages)
     {
         // TODO: Implement this
         _logger.LogDebug($"{nameof(PutInvalidRequest)} called");
     }
 
-    public void PutValidRequest(HttpRequestData req, string contractId, string senderId, string tenantId)
+    public void PutValidRequest(
+        IEnumerable<Tuple<string, string>> requestHeaders, string requestBody, 
+        string contractId, string senderId, string tenantId)
     {
         // TODO: Implement this
         _logger.LogDebug($"{nameof(PutValidRequest)} called");

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -10,9 +11,10 @@ using WebhookFunctionApp.Utilities;
 
 namespace WebhookFunctionApp.Functions;
 
-public class ValidateAndStoreFunction(ILoggerFactory loggerFactory,
-                                      IRequestValidator requestValidator,
-                                      IRequestStore requestStore)
+public class ValidateAndStoreFunction(
+    ILoggerFactory loggerFactory,
+    IRequestValidator requestValidator,
+    IRequestStore requestStore)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<ValidateAndStoreFunction>();
     private readonly IRequestValidator _requestValidator = requestValidator;
@@ -56,7 +58,12 @@ public class ValidateAndStoreFunction(ILoggerFactory loggerFactory,
                                                 string senderId,
                                                 string tenantId)
     {
-        _requestStore.PutValidRequest(req, contractId, senderId, tenantId);
+        var requestHeaders =
+            req.Headers.ToList().Select(h => 
+                new Tuple<string, string>(h.Key, string.Join(", ", h.Value.ToArray())));
+        var requestBody = StreamToStringConverter.ConvertStreamToString(req.Body);
+
+        _requestStore.PutValidRequest(requestHeaders, requestBody, contractId, senderId, tenantId);
 
         HttpResponseData response = req.CreateResponse(HttpStatusCode.Created);
         response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
@@ -70,7 +77,12 @@ public class ValidateAndStoreFunction(ILoggerFactory loggerFactory,
                                                   string tenantId,
                                                   IList<string>? errorMessages)
     {
-        _requestStore.PutInvalidRequest(req, contractId, senderId, tenantId, errorMessages);
+        var requestHeaders =
+            req.Headers.ToList().Select(h =>
+                new Tuple<string, string>(h.Key, string.Join(", ", h.Value.ToArray())));
+        var requestBody = StreamToStringConverter.ConvertStreamToString(req.Body);
+
+        _requestStore.PutInvalidRequest(requestHeaders, requestBody, contractId, senderId, tenantId, errorMessages);
 
         var responseBodyJson = JsonConvert.SerializeObject(errorMessages ?? [], Formatting.Indented);
 

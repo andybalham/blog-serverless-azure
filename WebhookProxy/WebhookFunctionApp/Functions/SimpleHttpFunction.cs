@@ -5,17 +5,27 @@ using System.Net;
 
 namespace WebhookFunctionApp.Functions;
 
-public static class SimpleHttpFunction
+public class SimpleHttpFunction(ILoggerFactory loggerFactory)
 {
-    // TODO: Static vs. Non-static
-    // TODO: FunctionContext as a parameter
-    [Function("SimpleHttpFunction")]
-    public static HttpResponseData Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", 
-            Route = "simplefunction")] HttpRequestData req, FunctionContext executionContext)
+    private readonly ILogger _logger = loggerFactory.CreateLogger<SimpleHttpFunction>();
+
+    [Function("HttpExample")]
+    public HttpResponseData Run(
+      [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)
     {
-        var logger = executionContext.GetLogger("SimpleHttpFunction");
-        logger.LogInformation("C# HTTP trigger function processed a request.");
+        _logger.LogInformation("C# HTTP trigger function processed a request.");
+
+        var response = req.CreateResponse(HttpStatusCode.OK);
+        response.WriteString("Welcome to Azure Functions!");
+        return response;
+    }
+
+    [Function("SimpleHttpFunction")]
+    public HttpResponseData Run_(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get",
+            Route = "simplefunction")] HttpRequestData req)
+    {
+        _logger.LogInformation("C# HTTP trigger function processed a request.");
 
         var response = req.CreateResponse(HttpStatusCode.OK);
         response.Headers.Add("Content-Type", "text/plain; charset=utf-8");

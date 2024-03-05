@@ -1,10 +1,11 @@
-﻿using Microsoft.Azure.Functions.Worker.Http;
-
-namespace WebhookFunctionApp.Services.RequestStore;
+﻿namespace WebhookFunctionApp.Services.RequestStore;
 
 public interface IRequestStore
 {
-    void PutValidRequest(HttpRequestData req, string contractId, string senderId, string tenantId);
+    void PutValidRequest(
+        IEnumerable<Tuple<string, string>> requestHeaders, string requestBody, string contractId, string senderId, string tenantId);
 
-    void PutInvalidRequest(HttpRequestData req, string contractId, string senderId, string tenantId, IList<string>? errorMessages);
+    void PutInvalidRequest(
+        IEnumerable<Tuple<string, string>> requestHeaders, string requestBody, string contractId, string senderId, string tenantId, 
+        IList<string>? errorMessages);
 }
