@@ -63,7 +63,8 @@ public class ValidateAndStoreFunctionTests
 
         mockRequestStore.Verify(rs => 
             rs.PutValidRequest(
-                It.IsAny<HttpRequestData>(), 
+                It.IsAny<IEnumerable<Tuple<string, string>>>(), 
+                It.IsAny<string>(),
                 It.Is<string>(p => p == ExpectedContractId), 
                 It.Is<string>(p => p == ExpectedSenderId), 
                 It.Is<string>(p => p == ExpectedTenantId)));
@@ -117,7 +118,8 @@ public class ValidateAndStoreFunctionTests
 
         mockRequestStore.Verify(rs =>
             rs.PutInvalidRequest(
-                It.IsAny<HttpRequestData>(),
+                It.IsAny<IEnumerable<Tuple<string, string>>>(),
+                It.IsAny<string>(),
                 It.Is<string>(p => p == ExpectedContractId),
                 It.Is<string>(p => p == ExpectedSenderId),
                 It.Is<string>(p => p == ExpectedTenantId),

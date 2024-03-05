@@ -28,7 +28,7 @@ public class ValidateAndStoreFunction(
             Route = "handle/contract/{contractId}/sender/{senderId}/tenant/{tenantId}")] HttpRequestData req,
         string contractId, 
         string senderId, 
-        string tenantId, FunctionContext executionContext)
+        string tenantId)
     {
         _logger.LogInformation(
             "FUNCTION_START: {FunctionName} " +
