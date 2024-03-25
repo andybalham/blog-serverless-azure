@@ -9,7 +9,7 @@ public class SimpleHttpFunction(ILoggerFactory loggerFactory)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<SimpleHttpFunction>();
 
-    [Function("HttpExample")]
+    //[Function("HttpExample")]
     public HttpResponseData Run(
       [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)
     {
@@ -20,7 +20,7 @@ public class SimpleHttpFunction(ILoggerFactory loggerFactory)
         return response;
     }
 
-    [Function("SimpleHttpFunction")]
+    //[Function("SimpleHttpFunction")]
     public HttpResponseData Run_(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get",
             Route = "simplefunction")] HttpRequestData req)

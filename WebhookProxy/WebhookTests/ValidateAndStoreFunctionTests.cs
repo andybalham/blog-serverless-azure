@@ -53,7 +53,8 @@ public class ValidateAndStoreFunctionTests
         // Act
 
         var response = 
-            validateAndStoreSUT.Run(new MockHttpRequestData(new { }), ExpectedContractId, ExpectedSenderId, ExpectedTenantId);
+            validateAndStoreSUT.Run(
+                new MockHttpRequestData(new { }), ExpectedContractId, ExpectedSenderId, ExpectedTenantId);
 
         // Assert
 
@@ -98,7 +99,8 @@ public class ValidateAndStoreFunctionTests
         // Act
 
         var response =
-            validateAndStoreSUT.Run(new MockHttpRequestData(new { }), ExpectedContractId, ExpectedSenderId, ExpectedTenantId);
+            validateAndStoreSUT.Run(
+                new MockHttpRequestData(new { }), ExpectedContractId, ExpectedSenderId, ExpectedTenantId);
 
         // Assert
 

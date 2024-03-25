@@ -9,13 +9,12 @@ public class StreamToStringConverter
             throw new ArgumentNullException(nameof(stream));
         }
 
-        // Reset the stream position to the beginning (if the stream supports seeking)
-        if (stream.CanSeek)
-        {
-            stream.Seek(0, SeekOrigin.Begin);
-        }
+        var memoryStream = new MemoryStream();
+        stream.CopyTo(memoryStream);
 
-        using StreamReader reader = new(stream);
+        memoryStream.Position = 0; // Reset to the beginning before each read
+
+        using StreamReader reader = new(memoryStream);
         return reader.ReadToEnd();
     }
 }
