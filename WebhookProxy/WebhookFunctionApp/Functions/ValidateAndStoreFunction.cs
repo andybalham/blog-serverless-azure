@@ -99,7 +99,7 @@ public class ValidateAndStoreFunction(
         var responseBodyJson = JsonConvert.SerializeObject(errorMessages ?? [], Formatting.Indented);
 
         HttpResponseData response = req.CreateResponse(HttpStatusCode.BadRequest);
-        response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
+        response.Headers.Add("Content-Type", "application/json");
         response.WriteString(responseBodyJson);
 
         return response;

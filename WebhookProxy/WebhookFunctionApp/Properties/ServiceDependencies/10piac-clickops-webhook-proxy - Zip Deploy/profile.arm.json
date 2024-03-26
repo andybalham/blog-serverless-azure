@@ -21,7 +21,7 @@
     },
     "resourceName": {
       "type": "string",
-      "defaultValue": "WebhookFunctionApp20240302105252",
+      "defaultValue": "10piac-clickops-webhook-proxy",
       "metadata": {
         "description": "Name of the main resource to be created by this template."
       }
