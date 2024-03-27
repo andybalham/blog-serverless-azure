@@ -12,7 +12,7 @@ internal class MockHttpRequestData(object bodyObject) : HttpRequestData(new Mock
 
     public override Stream Body => GetStringAsStream(_bodyJson);
 
-    public override HttpHeadersCollection Headers => throw new NotImplementedException();
+    public override HttpHeadersCollection Headers => new HttpHeadersCollection();
 
     public override IReadOnlyCollection<IHttpCookie> Cookies => throw new NotImplementedException();
 

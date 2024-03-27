@@ -9,12 +9,21 @@ public class StreamToStringConverter
             throw new ArgumentNullException(nameof(stream));
         }
 
-        var memoryStream = new MemoryStream();
-        stream.CopyTo(memoryStream);
+        // Reset the stream position to the beginning (if the stream supports seeking)
+        if (stream.CanSeek)
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+        }
 
-        memoryStream.Position = 0; // Reset to the beginning before each read
+        using StreamReader reader = new(stream);
 
-        using StreamReader reader = new(memoryStream);
+        //var memoryStream = new MemoryStream();
+        //stream.CopyTo(memoryStream);
+
+        //memoryStream.Position = 0; // Reset to the beginning before each read
+
+        //using StreamReader reader = new(memoryStream);
+
         return reader.ReadToEnd();
     }
 }

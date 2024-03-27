@@ -30,39 +30,35 @@ public class ValidateAndStoreFunction(
         string senderId, 
         string tenantId)
     {
-        try
-        {
-            _logger.LogInformation(
-                "FUNCTION_START: {FunctionName} " +
-                "(contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}])",
-                FUNCTION_NAME, contractId, senderId, tenantId);
+        //try
+        //{
+        _logger.LogInformation(
+            "FUNCTION_START: {FunctionName} " +
+            "(contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}])",
+            FUNCTION_NAME, contractId, senderId, tenantId);
 
-            var requestBodyJson = StreamToStringConverter.ConvertStreamToString(req.Body);
+        var requestBodyJson = StreamToStringConverter.ConvertStreamToString(req.Body);
 
-            _logger.LogTrace("Converted stream to string");
+        var validationResult = _requestValidator.Validate(contractId, requestBodyJson);
 
-            var validationResult = _requestValidator.Validate(contractId, requestBodyJson);
+        HttpResponseData response =
+            validationResult.IsValid
+                ? HandleValidRequest(req, contractId, senderId, tenantId)
+                : HandleInvalidRequest(
+                    req, contractId, senderId, tenantId, validationResult.ErrorMessages);
 
-            _logger.LogTrace("Validated the request");
+        _logger.LogInformation(
+            "FUNCTION_END: {FunctionName} => {StatusCode} " +
+            "(contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}])",
+            FUNCTION_NAME, response.StatusCode, contractId, senderId, tenantId);
 
-            HttpResponseData response =
-                validationResult.IsValid
-                    ? HandleValidRequest(req, contractId, senderId, tenantId)
-                    : HandleInvalidRequest(
-                        req, contractId, senderId, tenantId, validationResult.ErrorMessages);
-
-            _logger.LogInformation(
-                "FUNCTION_END: {FunctionName} => {StatusCode} " +
-                "(contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}])",
-                FUNCTION_NAME, response.StatusCode, contractId, senderId, tenantId);
-
-            return response;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "{ExceptionType}: {ExceptionMessage}", ex.GetType().FullName, ex.Message);
-            throw;
-        }
+        return response;
+        //}
+        //catch (Exception ex)
+        //{
+        //    _logger.LogError(ex, "{ExceptionType}: {ExceptionMessage}", ex.GetType().FullName, ex.Message);
+        //    throw;
+        //}
     }
 
     private HttpResponseData HandleValidRequest(HttpRequestData req,
