@@ -30,8 +30,6 @@ public class ValidateAndStoreFunction(
         string senderId, 
         string tenantId)
     {
-        //try
-        //{
         _logger.LogInformation(
             "FUNCTION_START: {FunctionName} " +
             "(contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}])",
@@ -53,12 +51,6 @@ public class ValidateAndStoreFunction(
             FUNCTION_NAME, response.StatusCode, contractId, senderId, tenantId);
 
         return response;
-        //}
-        //catch (Exception ex)
-        //{
-        //    _logger.LogError(ex, "{ExceptionType}: {ExceptionMessage}", ex.GetType().FullName, ex.Message);
-        //    throw;
-        //}
     }
 
     private HttpResponseData HandleValidRequest(HttpRequestData req,
