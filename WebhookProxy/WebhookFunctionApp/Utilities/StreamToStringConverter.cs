@@ -16,6 +16,7 @@ public class StreamToStringConverter
 
         using StreamReader reader = new(memoryStream);
 
-        return reader.ReadToEnd();
+        var streamString = reader.ReadToEnd();
+        return streamString;
     }
 }

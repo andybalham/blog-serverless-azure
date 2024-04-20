@@ -11,19 +11,37 @@ public class BlobRequestStore(ILoggerFactory loggerFactory) : IRequestStore
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<BlobRequestStore>();
 
-    // TODO: Store the requests under requests/[valid|invalid]/{senderId}/{date:yyyy-mm-dd}/{date-time:yyyymmdd-hhmm}-{tenantId}-{contractId}.json
+    /*
+     Have two containers:
+
+        - ValidWebhookPayloads: `/{tenantId}/{senderId}/{contractId}/{yyyy-mm-dd}/{messageId}.json`
+        - InvalidWebhookPayloads: `/{tenantId}/{senderId}/{contractId}/{yyyy-mm-dd}/{messageId}.json`
+
+        We will return `messageId` as a custom header `10piac-message-id`.
+
+        We will log out a message to link the `messageId` to the location of the payload.
+     */
 
     public void PutInvalidRequest(
-        IEnumerable<Tuple<string, string>> requestHeaders, string requestBody, 
-        string contractId, string senderId, string tenantId, IList<string>? errorMessages)
+        string tenantId,
+        string senderId,
+        string contractId,
+        string messageId,
+        IEnumerable<Tuple<string, string>> requestHeaders,
+        string requestBody,
+        IList<string>? errorMessages)
     {
         // TODO: Implement this
         _logger.LogDebug($"{nameof(PutInvalidRequest)} called");
     }
 
     public void PutValidRequest(
-        IEnumerable<Tuple<string, string>> requestHeaders, string requestBody, 
-        string contractId, string senderId, string tenantId)
+        string tenantId,
+        string senderId,
+        string contractId,
+        string messageId,
+        IEnumerable<Tuple<string, string>> requestHeaders,
+        string requestBody)
     {
         // TODO: Implement this
         _logger.LogDebug($"{nameof(PutValidRequest)} called");

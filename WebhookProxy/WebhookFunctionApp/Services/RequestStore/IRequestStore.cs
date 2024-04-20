@@ -3,9 +3,19 @@
 public interface IRequestStore
 {
     void PutValidRequest(
-        IEnumerable<Tuple<string, string>> requestHeaders, string requestBody, string contractId, string senderId, string tenantId);
+        string tenantId,
+        string senderId,
+        string contractId,
+        string messageId,
+        IEnumerable<Tuple<string, string>> requestHeaders,
+        string requestBody);
 
     void PutInvalidRequest(
-        IEnumerable<Tuple<string, string>> requestHeaders, string requestBody, string contractId, string senderId, string tenantId, 
+        string tenantId,
+        string senderId,
+        string contractId,
+        string messageId,
+        IEnumerable<Tuple<string, string>> requestHeaders,
+        string requestBody,
         IList<string>? errorMessages);
 }
