@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 using System;
 using System.Collections.Generic;
@@ -18,7 +19,20 @@ public class RequestValidator : IRequestValidator
         var contractSchemaJson = EmbeddedResourceReader.ReadEmbeddedFile($"WebhookFunctionApp.Schemas.{contractId}.json");
         var contractSchema = JSchema.Parse(contractSchemaJson);
 
-        var requestBodyJsonObject = JObject.Parse(requestBody);
+        JObject requestBodyJsonObject;
+        try
+		{
+            requestBodyJsonObject = JObject.Parse(requestBody);
+		}
+		catch (JsonReaderException ex)
+		{
+            return 
+                new RequestValidationResult 
+                { 
+                    IsValid = false, 
+                    ErrorMessages = [$"Exception when parsing JSON: {ex.Message}"],
+                };
+		}
 
         bool isValid = requestBodyJsonObject.IsValid(contractSchema, out IList<string> errorMessages);
 

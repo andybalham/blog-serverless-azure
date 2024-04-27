@@ -1,10 +1,13 @@
 ﻿using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using WebhookFunctionApp.Models;
 
 namespace WebhookFunctionApp.Services.RequestStore;
 
@@ -28,7 +31,7 @@ public class BlobPayloadStore(ILoggerFactory loggerFactory) : IPayloadStore
         string senderId,
         string contractId,
         string messageId,
-        IEnumerable<Tuple<string, string>> requestHeaders,
+        IDictionary<string, IEnumerable<string>> requestHeaders,
         string requestBody,
         IList<string>? errorMessages)
     {
@@ -43,23 +46,23 @@ public class BlobPayloadStore(ILoggerFactory loggerFactory) : IPayloadStore
         string senderId,
         string contractId,
         string messageId,
-        IEnumerable<Tuple<string, string>> requestHeaders,
+        IDictionary<string, IEnumerable<string>> requestHeaders,
         string requestBody)
     {
-        // TODO: Implement this
         _logger.LogDebug($"{nameof(AddAcceptedPayloadAsync)} called");
 
-        // TODO: Build up the JSON to store
-        string payloadJsonString = "{\"name\":\"John Doe\",\"age\":30}";
+        var payload = new AcceptedPayload(requestHeaders, requestBody);
+        string payloadJsonString = 
+            JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
 
         var blobServiceClient = new BlobServiceClient(connectionString);
         var containerClient = blobServiceClient.GetBlobContainerClient(CONTAINER_NAME_ACCEPTED_PAYLOADS);
 
-        string blobName = GetBlobName(tenantId, senderId, contractId, messageId);
+        var blobName = GetBlobName(tenantId, senderId, contractId, messageId);
         
         var blobClient = containerClient.GetBlobClient(blobName);
 
-        byte[] byteArray = Encoding.UTF8.GetBytes(payloadJsonString);
+        var byteArray = Encoding.UTF8.GetBytes(payloadJsonString);
         using var stream = new MemoryStream(byteArray);
         
         await blobClient.UploadAsync(stream, overwrite: true);
@@ -71,8 +74,7 @@ public class BlobPayloadStore(ILoggerFactory loggerFactory) : IPayloadStore
         string contractId,
         string messageId)
     {
-        var now = DateTime.UtcNow;
-        var blobName = $"{tenantId}/{senderId}/{contractId}/{now:yyyy-MM-dd}/{now:HHmm}UTC-{messageId}.json";
+        var blobName = $"{tenantId}/{senderId}/{contractId}/{DateTime.UtcNow:yyyy-MM-dd}/{messageId}.json";
         return blobName;
     }
 }

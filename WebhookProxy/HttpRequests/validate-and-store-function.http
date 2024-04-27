@@ -75,3 +75,23 @@ x-functions-key: {{validateAndStoreFunctionApiKey}}
     "landArea": 5000,
     "buildingArea": 1500
 }
+
+### Function: Invalid JSON
+
+POST {{host}}/api/handle/contract/ValuationReportV1/sender/QuickValuationCo/tenant/LovelyLoans HTTP/1.1
+content-type: application/json
+x-request-id: {{$guid}}
+x-functions-key: {{validateAndStoreFunctionApiKey}}
+
+{
+    "reportId": "VR123456789"
+    "date": "2024-01-17",
+    "propertyAddress": "123 Main St, Anytown, AT 12345",
+    "ownerFullname": "John Doe",
+    "estimatedValue": 750000,
+    "valuationMethod": "Comparative Market Analysis",
+    "appraiser": "Jane Smith",
+    "appraiserContact": "jane.smith@example.com",
+    "landArea": 5000,
+    "buildingArea": 1500
+}

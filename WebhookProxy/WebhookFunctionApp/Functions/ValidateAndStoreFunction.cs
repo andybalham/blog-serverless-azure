@@ -26,7 +26,7 @@ public class ValidateAndStoreFunction(
     [Function(FUNCTION_NAME)]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "post", 
-            Route = "handle/contract/{contractId}/sender/{senderId}/tenant/{tenantId}")] HttpRequestData req,
+            Route = "handle/contract/{contractId}/sender/{senderId}/tenant/{tenantId}")] HttpRequestData request,
         string contractId, 
         string senderId, 
         string tenantId)
@@ -38,15 +38,23 @@ public class ValidateAndStoreFunction(
             "(contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}], messageId=[{messageId}])",
             FUNCTION_NAME, contractId, senderId, tenantId, messageId);
 
-        var requestBodyJson = StreamToStringConverter.ConvertStreamToString(req.Body);
+        var requestHeaders = 
+            request.Headers.ToDictionary(
+                header => header.Key,
+                header => header.Value,
+                StringComparer.OrdinalIgnoreCase  // Ensures the dictionary is case-insensitive
+            );
+        var requestBodyJson = StreamToStringConverter.ConvertStreamToString(request.Body);
 
         var validationResult = _requestValidator.Validate(contractId, requestBodyJson);
 
         HttpResponseData response =
             validationResult.IsValid
-                ? await HandleValidRequestAsync(req, contractId, senderId, tenantId, messageId)
+                ? await HandleValidRequestAsync(
+                    request, requestHeaders, requestBodyJson, contractId, senderId, tenantId, messageId)
                 : await HandleInvalidRequestAsync(
-                    req, contractId, senderId, tenantId, messageId, validationResult.ErrorMessages);
+                    request, requestHeaders, requestBodyJson, contractId, senderId, tenantId, messageId, 
+                    validationResult.ErrorMessages);
 
         _logger.LogInformation(
             "FUNCTION_END: {FunctionName} => {StatusCode} " +
@@ -57,20 +65,18 @@ public class ValidateAndStoreFunction(
     }
 
     private async Task<HttpResponseData> HandleValidRequestAsync(
-        HttpRequestData req,
+        HttpRequestData request,
+        Dictionary<string, IEnumerable<string>> requestHeaders,
+        string requestBodyJson,
         string contractId,
         string senderId,
         string tenantId,
         string messageId)
-    {
-        var requestHeaders =
-            req.Headers.ToList().Select(h =>
-                new Tuple<string, string>(h.Key, string.Join(", ", h.Value.ToArray())));
-        var requestBody = StreamToStringConverter.ConvertStreamToString(req.Body);
+    { 
+        await _payloadStore.AddAcceptedPayloadAsync(
+            tenantId, senderId, contractId, messageId, requestHeaders, requestBodyJson);
 
-        await _payloadStore.AddAcceptedPayloadAsync(tenantId, senderId, contractId, messageId, requestHeaders, requestBody);
-
-        HttpResponseData response = req.CreateResponse(HttpStatusCode.Created);
+        HttpResponseData response = request.CreateResponse(HttpStatusCode.Created);
         response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
         response.Headers.Add(MESSAGE_ID_CUSTOM_HEADER, messageId);
         response.WriteString("Created");
@@ -79,19 +85,16 @@ public class ValidateAndStoreFunction(
 
     private async Task<HttpResponseData> HandleInvalidRequestAsync(
         HttpRequestData req,
+        Dictionary<string, IEnumerable<string>> requestHeaders,
+        string requestBodyJson,
         string contractId,
         string senderId,
         string tenantId,
         string messageId,
         IList<string>? errorMessages)
     {
-        var requestHeaders =
-            req.Headers.ToList().Select(h =>
-                new Tuple<string, string>(h.Key, string.Join(", ", h.Value.ToArray())));
-        var requestBody = StreamToStringConverter.ConvertStreamToString(req.Body);
-
         await _payloadStore.AddRejectedPayloadAsync(
-            tenantId, senderId, contractId, messageId, requestHeaders, requestBody, errorMessages);
+            tenantId, senderId, contractId, messageId, requestHeaders, requestBodyJson, errorMessages);
 
         var responseBodyJson = JsonConvert.SerializeObject(errorMessages ?? [], Formatting.Indented);
 
@@ -105,6 +108,6 @@ public class ValidateAndStoreFunction(
 
     private static string GetMessageId()
     {
-        return Guid.NewGuid().ToString();
+        return $"{DateTime.UtcNow:s}UTC-{Guid.NewGuid()}";
     }
 }

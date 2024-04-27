@@ -7,7 +7,7 @@ public interface IPayloadStore
         string senderId,
         string contractId,
         string messageId,
-        IEnumerable<Tuple<string, string>> requestHeaders,
+        IDictionary<string, IEnumerable<string>> requestHeaders,
         string requestBody);
 
     Task AddRejectedPayloadAsync(
@@ -15,7 +15,7 @@ public interface IPayloadStore
         string senderId,
         string contractId,
         string messageId,
-        IEnumerable<Tuple<string, string>> requestHeaders,
+        IDictionary<string, IEnumerable<string>> requestHeaders,
         string requestBody,
         IList<string>? errorMessages);
 }
