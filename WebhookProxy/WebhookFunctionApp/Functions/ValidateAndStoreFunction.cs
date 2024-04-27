@@ -14,17 +14,17 @@ namespace WebhookFunctionApp.Functions;
 public class ValidateAndStoreFunction(
     ILoggerFactory loggerFactory,
     IRequestValidator requestValidator,
-    IRequestStore requestStore)
+    IPayloadStore requestStore)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<ValidateAndStoreFunction>();
     private readonly IRequestValidator _requestValidator = requestValidator;
-    private readonly IRequestStore _requestStore = requestStore;
+    private readonly IPayloadStore _payloadStore = requestStore;
 
     private const string FUNCTION_NAME = "ValidateAndStore";
     private const string MESSAGE_ID_CUSTOM_HEADER = "10PIAC-Message-Id";
 
     [Function(FUNCTION_NAME)]
-    public HttpResponseData Run(
+    public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "post", 
             Route = "handle/contract/{contractId}/sender/{senderId}/tenant/{tenantId}")] HttpRequestData req,
         string contractId, 
@@ -44,8 +44,8 @@ public class ValidateAndStoreFunction(
 
         HttpResponseData response =
             validationResult.IsValid
-                ? HandleValidRequest(req, contractId, senderId, tenantId, messageId)
-                : HandleInvalidRequest(
+                ? await HandleValidRequestAsync(req, contractId, senderId, tenantId, messageId)
+                : await HandleInvalidRequestAsync(
                     req, contractId, senderId, tenantId, messageId, validationResult.ErrorMessages);
 
         _logger.LogInformation(
@@ -56,18 +56,19 @@ public class ValidateAndStoreFunction(
         return response;
     }
 
-    private HttpResponseData HandleValidRequest(HttpRequestData req,
-                                                string contractId,
-                                                string senderId,
-                                                string tenantId,
-                                                string messageId)
+    private async Task<HttpResponseData> HandleValidRequestAsync(
+        HttpRequestData req,
+        string contractId,
+        string senderId,
+        string tenantId,
+        string messageId)
     {
         var requestHeaders =
             req.Headers.ToList().Select(h =>
                 new Tuple<string, string>(h.Key, string.Join(", ", h.Value.ToArray())));
         var requestBody = StreamToStringConverter.ConvertStreamToString(req.Body);
 
-        _requestStore.PutValidRequest(tenantId, senderId, contractId, messageId, requestHeaders, requestBody);
+        await _payloadStore.AddAcceptedPayloadAsync(tenantId, senderId, contractId, messageId, requestHeaders, requestBody);
 
         HttpResponseData response = req.CreateResponse(HttpStatusCode.Created);
         response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
@@ -76,19 +77,20 @@ public class ValidateAndStoreFunction(
         return response;
     }
 
-    private HttpResponseData HandleInvalidRequest(HttpRequestData req,
-                                                  string contractId,
-                                                  string senderId,
-                                                  string tenantId,
-                                                  string messageId,
-                                                  IList<string>? errorMessages)
+    private async Task<HttpResponseData> HandleInvalidRequestAsync(
+        HttpRequestData req,
+        string contractId,
+        string senderId,
+        string tenantId,
+        string messageId,
+        IList<string>? errorMessages)
     {
         var requestHeaders =
             req.Headers.ToList().Select(h =>
                 new Tuple<string, string>(h.Key, string.Join(", ", h.Value.ToArray())));
         var requestBody = StreamToStringConverter.ConvertStreamToString(req.Body);
 
-        _requestStore.PutInvalidRequest(
+        await _payloadStore.AddRejectedPayloadAsync(
             tenantId, senderId, contractId, messageId, requestHeaders, requestBody, errorMessages);
 
         var responseBodyJson = JsonConvert.SerializeObject(errorMessages ?? [], Formatting.Indented);

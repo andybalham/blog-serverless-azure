@@ -1,8 +1,8 @@
 ﻿namespace WebhookFunctionApp.Services.RequestStore;
 
-public interface IRequestStore
+public interface IPayloadStore
 {
-    void PutValidRequest(
+    Task AddAcceptedPayloadAsync(
         string tenantId,
         string senderId,
         string contractId,
@@ -10,7 +10,7 @@ public interface IRequestStore
         IEnumerable<Tuple<string, string>> requestHeaders,
         string requestBody);
 
-    void PutInvalidRequest(
+    Task AddRejectedPayloadAsync(
         string tenantId,
         string senderId,
         string contractId,

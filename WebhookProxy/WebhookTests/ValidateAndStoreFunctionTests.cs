@@ -33,7 +33,7 @@ public class ValidateAndStoreFunctionTests
     }
 
     [Fact]
-    public void ValidRequest_CreatedResponse_StoredAsValid()
+    public async Task ValidRequest_CreatedResponse_StoredAsValid()
     {
         // Arrange
 
@@ -47,7 +47,7 @@ public class ValidateAndStoreFunctionTests
             .Validate(It.IsAny<string>(), It.IsAny<string>()))
             .Returns(requestValidationResult);
 
-        var mockRequestStore = new Mock<IRequestStore>();
+        var mockRequestStore = new Mock<IPayloadStore>();
 
         var validateAndStoreSUT = new ValidateAndStoreFunction(
             _mockLoggerFactory.Object, _mockRequestValidator.Object, mockRequestStore.Object);
@@ -55,7 +55,7 @@ public class ValidateAndStoreFunctionTests
         // Act
 
         var response = 
-            validateAndStoreSUT.Run(
+            await validateAndStoreSUT.Run(
                 new MockHttpRequestData(new { }), ExpectedContractId, ExpectedSenderId, ExpectedTenantId);
 
         // Assert
@@ -65,7 +65,7 @@ public class ValidateAndStoreFunctionTests
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         mockRequestStore.Verify(rs => 
-            rs.PutValidRequest(
+            rs.AddAcceptedPayloadAsync(
                 It.Is<string>(p => p == ExpectedTenantId),
                 It.Is<string>(p => p == ExpectedSenderId),
                 It.Is<string>(p => p == ExpectedContractId),
@@ -75,7 +75,7 @@ public class ValidateAndStoreFunctionTests
     }
 
     [Fact]
-    public void InvalidRequest_BadRequestResponseWithErrors_StoredAsInvalid()
+    public async Task InvalidRequest_BadRequestResponseWithErrors_StoredAsInvalid()
     {
         // Arrange
 
@@ -94,7 +94,7 @@ public class ValidateAndStoreFunctionTests
             .Validate(It.IsAny<string>(), It.IsAny<string>()))
             .Returns(requestValidationResult);
 
-        var mockRequestStore = new Mock<IRequestStore>();
+        var mockRequestStore = new Mock<IPayloadStore>();
 
         var validateAndStoreSUT = new ValidateAndStoreFunction(
             _mockLoggerFactory.Object, _mockRequestValidator.Object, mockRequestStore.Object);
@@ -102,7 +102,7 @@ public class ValidateAndStoreFunctionTests
         // Act
 
         var response =
-            validateAndStoreSUT.Run(
+            await validateAndStoreSUT.Run(
                 new MockHttpRequestData(new { }), ExpectedContractId, ExpectedSenderId, ExpectedTenantId);
 
         // Assert
@@ -120,7 +120,7 @@ public class ValidateAndStoreFunctionTests
         actualErrors.Should().BeEquivalentTo(expectedErrors);
 
         mockRequestStore.Verify(rs =>
-            rs.PutInvalidRequest(
+            rs.AddRejectedPayloadAsync(
                 It.Is<string>(p => p == ExpectedTenantId),
                 It.Is<string>(p => p == ExpectedSenderId),
                 It.Is<string>(p => p == ExpectedContractId),

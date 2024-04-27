@@ -26,7 +26,7 @@ var host = new HostBuilder()
     .ConfigureServices(services =>
     {
         services.AddSingleton<IRequestValidator, RequestValidator>();
-        services.AddSingleton<IRequestStore, BlobRequestStore>();
+        services.AddSingleton<IPayloadStore, BlobPayloadStore>();
     })
     .Build();
 
