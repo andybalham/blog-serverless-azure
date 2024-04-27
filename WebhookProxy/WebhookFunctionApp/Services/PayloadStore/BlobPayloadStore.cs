@@ -1,11 +1,11 @@
 ﻿using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using WebhookFunctionApp.Models;
 
@@ -21,11 +21,6 @@ public class BlobPayloadStore(ILoggerFactory loggerFactory) : IPayloadStore
     // TODO: Get this from the environment, then key vault
     private readonly string connectionString = "UseDevelopmentStorage=true"; // Local emulator connection string
 
-    /*
-     Have two containers, but same folders:
-        - `/{tenantId}/{senderId}/{contractId}/{yyyy-mm-dd}/{HH-mm-ss}UTC-{messageId}.json`
-     */
-
     public async Task AddRejectedPayloadAsync(
         string tenantId,
         string senderId,
@@ -35,10 +30,12 @@ public class BlobPayloadStore(ILoggerFactory loggerFactory) : IPayloadStore
         string requestBody,
         IList<string>? errorMessages)
     {
-        // TODO: Implement this
         _logger.LogDebug($"{nameof(AddRejectedPayloadAsync)} called");
 
+        var payload = new RejectedPayload(requestHeaders, requestBody, errorMessages);
 
+        await UploadPayloadAsync(
+            CONTAINER_NAME_REJECTED_PAYLOADS, tenantId, senderId, contractId, messageId, payload);
     }
 
     public async Task AddAcceptedPayloadAsync(
@@ -52,19 +49,31 @@ public class BlobPayloadStore(ILoggerFactory loggerFactory) : IPayloadStore
         _logger.LogDebug($"{nameof(AddAcceptedPayloadAsync)} called");
 
         var payload = new AcceptedPayload(requestHeaders, requestBody);
-        string payloadJsonString = 
-            JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
+
+        await UploadPayloadAsync(
+            CONTAINER_NAME_ACCEPTED_PAYLOADS, tenantId, senderId, contractId, messageId, payload);
+    }
+
+    private async Task UploadPayloadAsync<T>(
+        string containerName,
+        string tenantId,
+        string senderId,
+        string contractId,
+        string messageId,
+        T payload) where T : PayloadBase
+    {
+        string payloadJsonString = JsonConvert.SerializeObject(payload, Formatting.Indented);
 
         var blobServiceClient = new BlobServiceClient(connectionString);
-        var containerClient = blobServiceClient.GetBlobContainerClient(CONTAINER_NAME_ACCEPTED_PAYLOADS);
+        var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
 
         var blobName = GetBlobName(tenantId, senderId, contractId, messageId);
-        
+
         var blobClient = containerClient.GetBlobClient(blobName);
 
         var byteArray = Encoding.UTF8.GetBytes(payloadJsonString);
         using var stream = new MemoryStream(byteArray);
-        
+
         await blobClient.UploadAsync(stream, overwrite: true);
     }
 
