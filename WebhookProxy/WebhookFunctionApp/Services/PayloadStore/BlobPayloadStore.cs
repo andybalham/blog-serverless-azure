@@ -11,15 +11,22 @@ using WebhookFunctionApp.Models;
 
 namespace WebhookFunctionApp.Services.RequestStore;
 
-public class BlobPayloadStore(ILoggerFactory loggerFactory) : IPayloadStore
+public class BlobPayloadStore : IPayloadStore
 {
-    private readonly ILogger _logger = loggerFactory.CreateLogger<BlobPayloadStore>();
+    private readonly ILogger _logger;
 
     private const string CONTAINER_NAME_ACCEPTED_PAYLOADS = "webhook-payloads-accepted";
     private const string CONTAINER_NAME_REJECTED_PAYLOADS = "webhook-payloads-rejected";
 
-    // TODO: Get this from the environment, then key vault
-    private readonly string connectionString = "UseDevelopmentStorage=true"; // Local emulator connection string
+    private readonly BlobServiceClient _blobServiceClient;
+
+    public BlobPayloadStore(ILoggerFactory loggerFactory)
+    {
+        _logger = loggerFactory.CreateLogger<BlobPayloadStore>();
+
+        // TODO: Local emulator connection string, get from environment, then key vault
+        _blobServiceClient = new BlobServiceClient("UseDevelopmentStorage=true");
+    }
 
     public async Task AddRejectedPayloadAsync(
         string tenantId,
@@ -64,8 +71,7 @@ public class BlobPayloadStore(ILoggerFactory loggerFactory) : IPayloadStore
     {
         string payloadJsonString = JsonConvert.SerializeObject(payload, Formatting.Indented);
 
-        var blobServiceClient = new BlobServiceClient(connectionString);
-        var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+        var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
 
         var blobName = GetBlobName(tenantId, senderId, contractId, messageId);
 
