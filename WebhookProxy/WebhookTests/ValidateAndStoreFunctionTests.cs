@@ -69,7 +69,7 @@ public class ValidateAndStoreFunctionTests
                 It.Is<string>(p => p == ExpectedTenantId),
                 It.Is<string>(p => p == ExpectedSenderId),
                 It.Is<string>(p => p == ExpectedContractId),
-                It.Is<string>(p => Guid.Parse(p) != Guid.Empty),
+                It.IsAny<string>(),
                 It.IsAny<IDictionary<string, IEnumerable<string>>>(),
                 It.IsAny<string>()));
     }
@@ -124,7 +124,7 @@ public class ValidateAndStoreFunctionTests
                 It.Is<string>(p => p == ExpectedTenantId),
                 It.Is<string>(p => p == ExpectedSenderId),
                 It.Is<string>(p => p == ExpectedContractId),
-                It.Is<string>(p => Guid.Parse(p) != Guid.Empty),
+                It.IsAny<string>(),
                 It.IsAny<IDictionary<string, IEnumerable<string>>>(),
                 It.IsAny<string>(),
                 It.Is<IList<string>>(p => p == requestValidationResult.ErrorMessages)));

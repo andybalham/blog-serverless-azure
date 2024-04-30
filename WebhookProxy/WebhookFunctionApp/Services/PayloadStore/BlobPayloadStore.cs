@@ -39,7 +39,9 @@ public class BlobPayloadStore : IPayloadStore
     {
         _logger.LogDebug($"{nameof(AddRejectedPayloadAsync)} called");
 
-        var payload = new RejectedPayload(requestHeaders, requestBody, errorMessages);
+        var payload = 
+            new RejectedPayload(
+                tenantId, senderId, contractId, messageId, requestHeaders, requestBody, errorMessages);
 
         await UploadPayloadAsync(
             CONTAINER_NAME_REJECTED_PAYLOADS, tenantId, senderId, contractId, messageId, payload);
@@ -55,7 +57,7 @@ public class BlobPayloadStore : IPayloadStore
     {
         _logger.LogDebug($"{nameof(AddAcceptedPayloadAsync)} called");
 
-        var payload = new AcceptedPayload(requestHeaders, requestBody);
+        var payload = new AcceptedPayload(tenantId, senderId, contractId, messageId, requestHeaders, requestBody);
 
         await UploadPayloadAsync(
             CONTAINER_NAME_ACCEPTED_PAYLOADS, tenantId, senderId, contractId, messageId, payload);
@@ -73,7 +75,7 @@ public class BlobPayloadStore : IPayloadStore
 
         var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
 
-        var blobName = GetBlobName(tenantId, senderId, contractId, messageId);
+        var blobName = GetBlobName(tenantId, senderId, messageId);
 
         var blobClient = containerClient.GetBlobClient(blobName);
 
@@ -86,10 +88,9 @@ public class BlobPayloadStore : IPayloadStore
     private static string GetBlobName(
         string tenantId,
         string senderId,
-        string contractId,
         string messageId)
     {
-        var blobName = $"{tenantId}/{senderId}/{contractId}/{DateTime.UtcNow:yyyy-MM-dd}/{messageId}.json";
+        var blobName = $"{tenantId}/{senderId}/{DateTime.UtcNow:yyyy-MM-dd}/{messageId}.json";
         return blobName;
     }
 }
