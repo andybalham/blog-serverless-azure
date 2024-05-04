@@ -41,10 +41,12 @@ public class BlobPayloadStore : IPayloadStore
 
         var payload = 
             new RejectedPayload(
-                tenantId, senderId, contractId, messageId, requestHeaders, requestBody, errorMessages);
+                tenantId, senderId, contractId, messageId, requestHeaders, requestBody, 
+                errorMessages);
 
         await UploadPayloadAsync(
-            CONTAINER_NAME_REJECTED_PAYLOADS, tenantId, senderId, contractId, messageId, payload);
+            CONTAINER_NAME_REJECTED_PAYLOADS, 
+            tenantId, senderId, contractId, messageId, payload);
     }
 
     public async Task AddAcceptedPayloadAsync(
@@ -57,10 +59,13 @@ public class BlobPayloadStore : IPayloadStore
     {
         _logger.LogDebug($"{nameof(AddAcceptedPayloadAsync)} called");
 
-        var payload = new AcceptedPayload(tenantId, senderId, contractId, messageId, requestHeaders, requestBody);
+        var payload = 
+            new AcceptedPayload(
+                tenantId, senderId, contractId, messageId, requestHeaders, requestBody); 
 
         await UploadPayloadAsync(
-            CONTAINER_NAME_ACCEPTED_PAYLOADS, tenantId, senderId, contractId, messageId, payload);
+            CONTAINER_NAME_ACCEPTED_PAYLOADS, 
+            tenantId, senderId, contractId, messageId, payload);
     }
 
     private async Task UploadPayloadAsync<T>(
@@ -71,7 +76,8 @@ public class BlobPayloadStore : IPayloadStore
         string messageId,
         T payload) where T : PayloadBase
     {
-        string payloadJsonString = JsonConvert.SerializeObject(payload, Formatting.Indented);
+        string payloadJsonString = 
+            JsonConvert.SerializeObject(payload, Formatting.Indented);
 
         var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
 
@@ -90,7 +96,8 @@ public class BlobPayloadStore : IPayloadStore
         string senderId,
         string messageId)
     {
-        var blobName = $"{tenantId}/{senderId}/{DateTime.UtcNow:yyyy-MM-dd}/{messageId}.json";
+        var blobName = 
+            $"{tenantId}/{senderId}/{DateTime.UtcNow:yyyy-MM-dd}/{messageId}.json";
         return blobName;
     }
 }
