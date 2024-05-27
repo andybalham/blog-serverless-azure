@@ -1,4 +1,5 @@
-﻿using Azure.Storage.Blobs;
+﻿using Azure.Identity;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -24,8 +25,14 @@ public class BlobPayloadStore : IPayloadStore
     {
         _logger = loggerFactory.CreateLogger<BlobPayloadStore>();
 
+        // TODO: Could inject an implementation that looked at the environment?
+
+        var azureCredential = new DefaultAzureCredential();
+        var blobUri = new Uri("https://127.0.0.1:10000");
+
         // TODO: Local emulator connection string, get from environment, then key vault
-        _blobServiceClient = new BlobServiceClient("UseDevelopmentStorage=true");
+        //_blobServiceClient = new BlobServiceClient("UseDevelopmentStorage=true");
+        _blobServiceClient = new BlobServiceClient(blobUri, azureCredential);
     }
 
     public async Task AddRejectedPayloadAsync(
