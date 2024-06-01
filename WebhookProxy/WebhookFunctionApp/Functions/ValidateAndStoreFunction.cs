@@ -16,52 +16,83 @@ public class ValidateAndStoreFunction(
     IRequestValidator requestValidator,
     IPayloadStore requestStore)
 {
-    private readonly ILogger _logger = loggerFactory.CreateLogger<ValidateAndStoreFunction>();
+    private readonly ILogger _logger = 
+        loggerFactory.CreateLogger<ValidateAndStoreFunction>();
     private readonly IRequestValidator _requestValidator = requestValidator;
     private readonly IPayloadStore _payloadStore = requestStore;
 
     private const string FUNCTION_NAME = "ValidateAndStore";
+    private const string FUNCTION_ROUTE = 
+        "handle/contract/{contractId}/sender/{senderId}/tenant/{tenantId}";
     private const string MESSAGE_ID_CUSTOM_HEADER = "10PIAC-Message-Id";
 
     [Function(FUNCTION_NAME)]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "post", 
-            Route = "handle/contract/{contractId}/sender/{senderId}/tenant/{tenantId}")] HttpRequestData request,
-        string contractId, 
-        string senderId, 
+            Route = FUNCTION_ROUTE)] HttpRequestData request,
+        string contractId,
+        string senderId,
         string tenantId)
     {
-        var messageId = GetMessageId();
+        _logger.LogInformation("Version: 240601-1148");
 
-        _logger.LogInformation(
-            "FUNCTION_START: {FunctionName} " +
-            "(contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}], messageId=[{messageId}])",
-            FUNCTION_NAME, contractId, senderId, tenantId, messageId);
+        try
+        {
+            var messageId = GetMessageId();
 
-        var requestHeaders = 
-            request.Headers.ToDictionary(
-                header => header.Key,
-                header => header.Value,
-                StringComparer.OrdinalIgnoreCase  // Ensures the dictionary is case-insensitive
-            );
-        var requestBodyJson = StreamToStringConverter.ConvertStreamToString(request.Body);
+            _logger.LogInformation(
+                "FUNCTION_START: {FunctionName} " +
+                "(contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}], messageId=[{messageId}])",
+                FUNCTION_NAME, contractId, senderId, tenantId, messageId);
 
-        var validationResult = _requestValidator.Validate(contractId, requestBodyJson);
+            var requestHeaders = GetHeaders(request);
+            var requestBodyJson = 
+                StreamToStringConverter.ConvertStreamToString(request.Body);
 
-        HttpResponseData response =
-            validationResult.IsValid
-                ? await HandleValidRequestAsync(
-                    request, requestHeaders, requestBodyJson, contractId, senderId, tenantId, messageId)
-                : await HandleInvalidRequestAsync(
-                    request, requestHeaders, requestBodyJson, contractId, senderId, tenantId, messageId, 
-                    validationResult.ErrorMessages);
+            var validationResult = 
+                _requestValidator.Validate(contractId, requestBodyJson);
 
-        _logger.LogInformation(
-            "FUNCTION_END: {FunctionName} => {StatusCode} " +
-            "(contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}], messageId=[{messageId}])",
-            FUNCTION_NAME, response.StatusCode, contractId, senderId, tenantId, messageId);
+            HttpResponseData response =
+                validationResult.IsValid
+                    ? await HandleValidRequestAsync(
+                        request, requestHeaders, requestBodyJson, contractId, senderId, 
+                        tenantId, messageId)
+                    : await HandleInvalidRequestAsync(
+                        request, requestHeaders, requestBodyJson, contractId, senderId, 
+                        tenantId, messageId, validationResult.ErrorMessages);
 
-        return response;
+            _logger.LogInformation(
+                "FUNCTION_END: {FunctionName} => {StatusCode} " +
+                "(contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}], messageId=[{messageId}])",
+                FUNCTION_NAME, response.StatusCode, contractId, senderId, tenantId, 
+                messageId);
+
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "FUNCTION_EXCEPTION: {FunctionName} {exceptionType} [{exceptionMessage}] " +
+                "(contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}])",
+                FUNCTION_NAME, ex.GetType().FullName, ex.Message, contractId, senderId, 
+                tenantId);
+            throw;
+        }
+    }
+
+    private static Dictionary<string, IEnumerable<string>> GetHeaders(
+        HttpRequestData request)
+    {
+        var requestHeaders =
+            request.Headers
+                .Where(header =>
+                    header.Key != "x-functions-key")
+                .ToDictionary(
+                    header => header.Key,
+                    header => header.Value,
+                    StringComparer.OrdinalIgnoreCase  // Ensures the dictionary is case-insensitive
+                );
+        return requestHeaders;
     }
 
     private async Task<HttpResponseData> HandleValidRequestAsync(
@@ -72,7 +103,9 @@ public class ValidateAndStoreFunction(
         string senderId,
         string tenantId,
         string messageId)
-    { 
+    {
+        _logger.LogDebug("{method} called", nameof(HandleValidRequestAsync));
+
         await _payloadStore.AddAcceptedPayloadAsync(
             tenantId, senderId, contractId, messageId, requestHeaders, requestBodyJson);
 
