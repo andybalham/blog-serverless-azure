@@ -5,10 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WebhookFunctionApp.Services.BlobService
+namespace WebhookFunctionApp.Services.BlobService;
+
+public interface IBlobServiceClientFactory
 {
-    public interface IBlobServiceClientFactory
-    {
-        BlobServiceClient CreateClient();
-    }
+    BlobServiceClient CreateClient();
 }
