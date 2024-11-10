@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebhookFunctionApp", "Webho
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebhookTests", "WebhookTests\WebhookTests.csproj", "{18989FF3-B480-4A31-A719-9AFA1F1E4CF3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ForwarderFunctionApp", "ForwarderFunctionApp\ForwarderFunctionApp.csproj", "{747A2C3C-4F0F-4B78-A139-3DBE875DC469}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ForwarderFunctionApp", "ForwarderFunctionApp\ForwarderFunctionApp.csproj", "{747A2C3C-4F0F-4B78-A139-3DBE875DC469}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
