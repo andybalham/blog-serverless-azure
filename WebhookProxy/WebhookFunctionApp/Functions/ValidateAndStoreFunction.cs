@@ -34,7 +34,7 @@ public class ValidateAndStoreFunction(
         string senderId,
         string tenantId)
     {
-        _logger.LogInformation("Version: 240602-1624");
+        _logger.LogInformation("Version: 241111-1925");
 
         try
         {

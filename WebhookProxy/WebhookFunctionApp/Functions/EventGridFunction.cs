@@ -38,14 +38,14 @@ public class EventGridFunction
     }
 
     [Function(nameof(EventGridFunction))]
-    public void Run([EventGridTrigger] EventGridEvent egEvent)
+    public void Run([EventGridTrigger] EventGridEvent eventGridEvent)
     {
-        _logger.LogInformation("Event type: {type}, Event subject: {subject}", egEvent.EventType, egEvent.Subject);
+        _logger.LogInformation("Event type: {type}, Event subject: {subject}", eventGridEvent.EventType, eventGridEvent.Subject);
 
         // Code from: https://learn.microsoft.com/en-us/dotnet/api/overview/azure/messaging.eventgrid-readme?view=azure-dotnet#deserializing-event-data
 
         // If the event is a system event, TryGetSystemEventData will return the deserialized system event
-        if (egEvent.TryGetSystemEventData(out object systemEvent))
+        if (eventGridEvent.TryGetSystemEventData(out object systemEvent))
         {
             switch (systemEvent)
             {
@@ -57,15 +57,15 @@ public class EventGridFunction
                     break;
                 // Handle any other system event type
                 default:
-                    Console.WriteLine(egEvent.EventType);
+                    Console.WriteLine(eventGridEvent.EventType);
                     // we can get the raw Json for the event using Data
-                    Console.WriteLine(egEvent.Data.ToString());
+                    Console.WriteLine(eventGridEvent.Data.ToString());
                     break;
             }
         }
         else
         {
-            switch (egEvent.EventType)
+            switch (eventGridEvent.EventType)
             {
                 case "MyApp.Models.CustomEventType":
                     //TestPayload deserializedEventData = egEvent.Data.ToObjectFromJson<TestPayload>();
@@ -73,8 +73,8 @@ public class EventGridFunction
                     break;
                 // Handle any other custom event type
                 default:
-                    Console.Write(egEvent.EventType);
-                    Console.WriteLine(egEvent.Data.ToString());
+                    Console.Write(eventGridEvent.EventType);
+                    Console.WriteLine(eventGridEvent.Data.ToString());
                     break;
             }
         }
