@@ -1,9 +1,11 @@
 ﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Text;
 using WebhookFunctionApp.Models;
 using WebhookFunctionApp.Services.BlobService;
+using WebhookFunctionApp.Services.PayloadStore;
 
 namespace WebhookFunctionApp.Services.RequestStore;
 
@@ -62,6 +64,46 @@ public class BlobPayloadStore : IPayloadStore
         await UploadPayloadAsync(
             CONTAINER_NAME_ACCEPTED_PAYLOADS, 
             tenantId, senderId, contractId, messageId, payload);
+    }
+
+    public async Task<AcceptedPayload> GetAcceptedPayloadAsync(string blobUrl)
+    {
+        var blobContent = 
+            await LoadBlobContentFromUrlAsync(CONTAINER_NAME_ACCEPTED_PAYLOADS, blobUrl);
+
+        var acceptedPayload = JsonConvert.DeserializeObject<AcceptedPayload>(blobContent);
+
+        return acceptedPayload;
+    }
+
+    private async Task<string> LoadBlobContentFromUrlAsync(string containerName, string blobUrl)
+    {
+        // Parse the blob URL to get the container name and blob name
+        var blobUri = new Uri(blobUrl);
+
+        var containerNameIndex = Array.IndexOf(blobUri.Segments, containerName + "/");
+
+        if (containerNameIndex == -1)
+        {
+            throw new Exception($"Blob URL is not for container [{containerName}]: {blobUrl}");
+        }
+
+        var blobName = string.Join("", blobUri.Segments[(containerNameIndex + 1)..]);
+
+        _logger.LogInformation("blobName: {blobName}", blobName);
+
+        // Get a reference to the blob
+        var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+        var blobClient = containerClient.GetBlobClient(blobName);
+
+        // Download the blob content as a stream
+        BlobDownloadInfo downloadInfo = await blobClient.DownloadAsync();
+
+        // Read the stream into a string
+        using var reader = new StreamReader(downloadInfo.Content);
+
+        string blobContent = await reader.ReadToEndAsync();
+        return blobContent;
     }
 
     private async Task UploadPayloadAsync<T>(

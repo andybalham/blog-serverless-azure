@@ -1,4 +1,6 @@
-﻿namespace WebhookFunctionApp.Services.RequestStore;
+﻿using WebhookFunctionApp.Models;
+
+namespace WebhookFunctionApp.Services.PayloadStore;
 
 public interface IPayloadStore
 {
@@ -18,4 +20,6 @@ public interface IPayloadStore
         IDictionary<string, IEnumerable<string>> requestHeaders,
         string requestBody,
         IList<string>? errorMessages);
+
+    Task<AcceptedPayload> GetAcceptedPayloadAsync(string blobUrl);
 }

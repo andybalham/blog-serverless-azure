@@ -1,3 +1,65 @@
+### Function: Local invocation with event captured from portal
+
+POST http://localhost:7089/runtime/webhooks/EventGrid?functionName=EventGridFunction
+content-type: application/json
+aeg-event-type: Notification
+
+{
+    "data": {
+        "api": "PutBlob",
+        "blobType": "BlockBlob",
+        "clientRequestId": "87587374-4264-4e5c-875a-5d912c31465e",
+        "contentLength": 2130,
+        "contentOffset": null,
+        "contentType": "application/octet-stream",
+        "eTag": "0x8DD034721B5280E",
+        "identity": null,
+        "requestId": "fc9bee32-b01e-003c-122f-35a9a7000000",
+        "sequencer": "0000000000000000000000000003C5ED00000000000f3e74",
+        "storageDiagnostics": {
+            "batchId": "737bfd88-4006-005a-002f-35e687000000"
+        },
+        "url": "http://127.0.0.1:10000/devstoreaccount1/webhook-payloads-accepted/LovelyLoans/QuickValuationCo/2024-04-30/2024-04-30T18:13:03UTC-e2a8e023-079c-4ce5-ac0f-2021264f92fe.json"
+    },
+    "dataVersion": "",
+    "eventTime": "2024-11-12T18:17:38.4562975+00:00",
+    "eventType": "Microsoft.Storage.BlobCreated",
+    "id": "9285afe2-b01e-002c-562f-356ccf0608c2",
+    "subject": "/blobServices/default/containers/webhook-payloads-accepted/blobs/LovelyLoans/QuickValuationCo/2024-11-12/2024-11-12T18:17:37UTC-73c4470b-b629-4fdf-b9ea-d9dd4332143f.json",
+    "topic": "/subscriptions/37645d0d-da4b-46a8-aa99-dbefe2e1185e/resourceGroups/WebhookProxy-ClickOps/providers/Microsoft.Storage/storageAccounts/webhookstorageclickops"
+}
+
+### Function: Local invocation with event captured from portal
+
+POST http://localhost:7089/runtime/webhooks/EventGrid?functionName=EventGridFunction
+content-type: application/json
+aeg-event-type: Notification
+
+{
+    "data": {
+        "api": "PutBlob",
+        "blobType": "BlockBlob",
+        "clientRequestId": "87587374-4264-4e5c-875a-5d912c31465e",
+        "contentLength": 2130,
+        "contentOffset": null,
+        "contentType": "application/octet-stream",
+        "eTag": "0x8DD034721B5280E",
+        "identity": null,
+        "requestId": "fc9bee32-b01e-003c-122f-35a9a7000000",
+        "sequencer": "0000000000000000000000000003C5ED00000000000f3e74",
+        "storageDiagnostics": {
+            "batchId": "737bfd88-4006-005a-002f-35e687000000"
+        },
+        "url": "https://webhookstorageclickops.blob.core.windows.net/webhook-payloads-accepted/LovelyLoans/QuickValuationCo/2024-11-12/2024-11-12T18:23:39UTC-e57ddd5d-5f47-4621-83e5-b7997766c573.json"
+    },
+    "dataVersion": "",
+    "eventTime": "2024-11-12T18:17:38.4562975+00:00",
+    "eventType": "Microsoft.Storage.BlobCreated",
+    "id": "9285afe2-b01e-002c-562f-356ccf0608c2",
+    "subject": "/blobServices/default/containers/webhook-payloads-accepted/blobs/LovelyLoans/QuickValuationCo/2024-11-12/2024-11-12T18:17:37UTC-73c4470b-b629-4fdf-b9ea-d9dd4332143f.json",
+    "topic": "/subscriptions/37645d0d-da4b-46a8-aa99-dbefe2e1185e/resourceGroups/WebhookProxy-ClickOps/providers/Microsoft.Storage/storageAccounts/webhookstorageclickops"
+}
+
 ### Function: Local invocation with single CloudEvent
 
 POST http://localhost:7089/runtime/webhooks/EventGrid?functionName=EventGridFunction

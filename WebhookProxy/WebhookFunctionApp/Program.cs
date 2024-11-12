@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using WebhookFunctionApp.Services.BlobService;
+using WebhookFunctionApp.Services.PayloadStore;
 using WebhookFunctionApp.Services.RequestStore;
 using WebhookFunctionApp.Services.RequestValidation;
 

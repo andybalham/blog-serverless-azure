@@ -10,7 +10,7 @@ using System.Net;
 using System.Text;
 using WebhookFunctionApp.Functions;
 using WebhookFunctionApp.Models;
-using WebhookFunctionApp.Services.RequestStore;
+using WebhookFunctionApp.Services.PayloadStore;
 using WebhookFunctionApp.Services.RequestValidation;
 using WebhookFunctionApp.Utilities;
 using WebhookTests.Mocks;

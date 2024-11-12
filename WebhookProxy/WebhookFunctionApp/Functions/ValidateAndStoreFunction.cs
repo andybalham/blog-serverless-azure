@@ -5,7 +5,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using WebhookFunctionApp.Services.RequestStore;
+using WebhookFunctionApp.Services.PayloadStore;
 using WebhookFunctionApp.Services.RequestValidation;
 using WebhookFunctionApp.Utilities;
 
@@ -14,12 +14,12 @@ namespace WebhookFunctionApp.Functions;
 public class ValidateAndStoreFunction(
     ILoggerFactory loggerFactory,
     IRequestValidator requestValidator,
-    IPayloadStore requestStore)
+    IPayloadStore payloadStore)
 {
     private readonly ILogger _logger = 
         loggerFactory.CreateLogger<ValidateAndStoreFunction>();
     private readonly IRequestValidator _requestValidator = requestValidator;
-    private readonly IPayloadStore _payloadStore = requestStore;
+    private readonly IPayloadStore _payloadStore = payloadStore;
 
     private const string FUNCTION_NAME = "ValidateAndStore";
     private const string FUNCTION_ROUTE = 
@@ -34,7 +34,7 @@ public class ValidateAndStoreFunction(
         string senderId,
         string tenantId)
     {
-        _logger.LogInformation("Version: 241111-1925");
+        _logger.LogInformation($"{FUNCTION_NAME} Version: 241112-1813");
 
         try
         {
