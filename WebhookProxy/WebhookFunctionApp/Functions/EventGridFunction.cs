@@ -1,13 +1,10 @@
 // Default URL for triggering event grid function in the local environment.
 // http://localhost:7071/runtime/webhooks/EventGrid?functionName=EventGridFunction
 
-using System;
-using Azure.Messaging;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using WebhookFunctionApp.Services.PayloadStore;
 
 namespace WebhookFunctionApp.Functions;
@@ -43,11 +40,24 @@ public class EventGridFunction
     [Function(nameof(EventGridFunction))]
     public async Task Run([EventGridTrigger] EventGridEvent eventGridEvent)
     {
-        _logger.LogInformation("EventGridFunction Version: 241112-1813");
+        _logger.LogInformation("EventGridFunction Version: 241116-1557");
 
-        _logger.LogInformation("eventGridEvent: {event}", JsonConvert.SerializeObject(eventGridEvent));
+        // Convert entire event to JSON
 
-        var eventJson = """
+        string eventNewtonsoftJson = 
+            Newtonsoft.Json.JsonConvert.SerializeObject(
+                eventGridEvent, Newtonsoft.Json.Formatting.Indented);
+        _logger.LogInformation($"Full event:\n{eventNewtonsoftJson}");
+
+        string eventSystemTextJson = 
+            System.Text.Json.JsonSerializer.Serialize(
+                eventGridEvent, new System.Text.Json.JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+        _logger.LogInformation($"Full event:\n{eventSystemTextJson}");
+
+        var eventJsonNewtonsoft = """
              {
                 "Data": {
                 },
@@ -90,9 +100,9 @@ public class EventGridFunction
                     Console.WriteLine(subscriptionValidated.ValidationCode);
                     break;
                 case StorageBlobCreatedEventData blobCreated:
-                    _logger.LogInformation("blobCreated: {blobCreated}", JsonConvert.SerializeObject(blobCreated));
+                    _logger.LogInformation("blobCreated: {blobCreated}", System.Text.Json.JsonSerializer.Serialize(blobCreated));
                     var acceptedPayload = await _payloadStore.GetAcceptedPayloadAsync(blobCreated.Url);
-                    _logger.LogInformation("acceptedPayload: {acceptedPayload}", JsonConvert.SerializeObject(acceptedPayload));
+                    _logger.LogInformation("acceptedPayload: {acceptedPayload}", System.Text.Json.JsonSerializer.Serialize(acceptedPayload));
                     break;
                 // Handle any other system event type
                 default:
