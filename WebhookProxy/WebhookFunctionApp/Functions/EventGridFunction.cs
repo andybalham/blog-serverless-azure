@@ -37,7 +37,7 @@ public class EventGridFunction
         _payloadStore = payloadStore;
     }
 
-    [Function(nameof(EventGridFunction))]
+    //[Function(nameof(EventGridFunction))]
     public async Task Run([EventGridTrigger] EventGridEvent eventGridEvent)
     {
         _logger.LogInformation("EventGridFunction Version: 241116-1557");
@@ -104,10 +104,7 @@ public class EventGridFunction
                     /*
                      Exception: System.NotImplementedException: The method or operation is not implemented.
                        at Azure.Messaging.EventGrid.SystemEvents.StorageBlobCreatedEventData.StorageBlobCreatedEventDataConverter.Write(Utf8JsonWriter writer, StorageBlobCreatedEventData model, JsonSerializerOptions options)
-                       at System.Text.Json.Serialization.JsonConverter`1.TryWrite(Utf8JsonWriter writer, T& value, JsonSerializerOptions options, WriteStack& state)
-                       at System.Text.Json.Serialization.JsonConverter`1.WriteCore(Utf8JsonWriter writer, T& value, JsonSerializerOptions options, WriteStack& state)
-                       at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.Serialize(Utf8JsonWriter writer, T& rootValue, Object rootValueBoxed)
-                       at System.Text.Json.JsonSerializer.WriteString[TValue](TValue& value, JsonTypeInfo`1 jsonTypeInfo)
+                       ...
                        at System.Text.Json.JsonSerializer.Serialize[TValue](TValue value, JsonSerializerOptions options)
                      */
                     _logger.LogInformation("blobCreated: {blobCreated}", Newtonsoft.Json.JsonConvert.SerializeObject(blobCreated));

@@ -20,6 +20,7 @@ var host = new HostBuilder()
     {
         var env = context.HostingEnvironment;
 
+        // https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings#azure_functions_environment
         if (env.IsDevelopment()) // BLOG: Varying the logging level
         {
             loggingConfig.SetMinimumLevel(LogLevel.Trace);

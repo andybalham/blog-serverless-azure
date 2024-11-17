@@ -9,6 +9,7 @@ using Azure.Messaging.EventGrid;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using WebhookFunctionApp.Services.PayloadStore;
+using System.Diagnostics.Contracts;
 
 namespace WebhookFunctionApp.Functions;
 
@@ -16,50 +17,75 @@ public class DedupeAndForwardFunction
 {
     private readonly ILogger<DedupeAndForwardFunction> _logger;
 
+    private const string FUNCTION_NAME = "DedupeAndForward";
+
     public DedupeAndForwardFunction(ILogger<DedupeAndForwardFunction> logger)
     {
         _logger = logger;
     }
 
-    [Function(nameof(DedupeAndForwardFunction))]
+    [Function(FUNCTION_NAME)]
     public void Run([EventGridTrigger] CloudEvent cloudEvent) // TODO: Mention this is the default
     {
-        _logger.LogInformation("DedupeAndForwardFunction Version: 241117-1025");
+        _logger.LogDebug("{FunctionName} Version: 241117-1644", FUNCTION_NAME);
 
-        _logger.LogInformation(
-            "Event type: {type}, Event subject: {subject}", 
-            cloudEvent.Type, cloudEvent.Subject);
-
-        _logger.LogInformation(
-            "Event: {event}", 
-            JsonSerializer.Serialize(cloudEvent, options: new() { WriteIndented = true }));
-
-        // Code from: https://learn.microsoft.com/en-us/dotnet/api/overview/azure/messaging.eventgrid-readme?view=azure-dotnet#deserializing-event-data
-
-        // If the event is a system event, TryGetSystemEventData will return the deserialized system event
-        if (cloudEvent.TryGetSystemEventData(out object systemEvent))
+        try
         {
-            switch (systemEvent)
+            _logger.LogInformation(
+                "FUNCTION_START: {functionName} " +
+                "Event type: {type}, Event subject: {subject}",
+                FUNCTION_NAME, cloudEvent.Type, cloudEvent.Subject);
+
+            _logger.LogDebug(
+                "{functionName} Event: {event}",
+                FUNCTION_NAME, JsonSerializer.Serialize(cloudEvent));
+
+            // Code from: https://learn.microsoft.com/en-us/dotnet/api/overview/azure/messaging.eventgrid-readme?view=azure-dotnet#deserializing-event-data
+
+            if (cloudEvent.TryGetSystemEventData(out object systemEvent))
             {
-                case SubscriptionValidationEventData subscriptionValidated:
-                    Console.WriteLine(subscriptionValidated.ValidationCode);
-                    break;
-                case StorageBlobCreatedEventData blobCreated:
-                    _logger.LogInformation("blobCreated.Url: {url}", blobCreated.Url);
-                    //var acceptedPayload = await _payloadStore.GetAcceptedPayloadAsync(blobCreated.Url);
-                    //_logger.LogInformation("acceptedPayload: {acceptedPayload}", JsonSerializer.Serialize(acceptedPayload));
-                    break;
-                // Handle any other system event type
-                default:
-                    // TODO: Log an error
-                    Console.WriteLine(cloudEvent.Type);
-                    break;
+                switch (systemEvent)
+                {
+                    case SubscriptionValidationEventData subscriptionValidated:
+                        _logger.LogDebug(
+                            "{functionName} subscriptionValidated.ValidationCode: {code}",
+                            FUNCTION_NAME, subscriptionValidated.ValidationCode);
+                        break;
+
+                    case StorageBlobCreatedEventData blobCreated:
+                        _logger.LogDebug(
+                            "{functionName} blobCreated.Url: {url}", 
+                            FUNCTION_NAME, blobCreated.Url);
+                        //var acceptedPayload = await _payloadStore.GetAcceptedPayloadAsync(blobCreated.Url);
+                        //_logger.LogInformation("acceptedPayload: {acceptedPayload}", JsonSerializer.Serialize(acceptedPayload));
+                        break;
+
+                    default:
+                        _logger.LogError(
+                            "{functionName} Unhandled event type: {eventType}",
+                            FUNCTION_NAME, cloudEvent.Type);
+                        break;
+                }
             }
+            else
+            {
+                _logger.LogError(
+                    "{functionName} Unhandled event type: {eventType}",
+                    FUNCTION_NAME, cloudEvent.Type);
+            }
+
+            _logger.LogInformation(
+                "FUNCTION_END: {functionName} " +
+                "Event type: {type}, Event subject: {subject}",
+                FUNCTION_NAME, cloudEvent.Type, cloudEvent.Subject);
         }
-        else
+        catch (Exception ex)
         {
-            // TODO: Log an error
-            Console.Write(cloudEvent.Type);
+            _logger.LogError(ex,
+                "FUNCTION_EXCEPTION: {functionName} {exceptionType} [{exceptionMessage}] " +
+                "Event type: {type}, Event subject: {subject}",
+                FUNCTION_NAME, ex.GetType().FullName, ex.Message, cloudEvent.Type, cloudEvent.Subject);
+            throw;
         }
     }
 }

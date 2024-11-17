@@ -41,7 +41,7 @@ public class ValidateAndStoreFunction(
             var messageId = GetMessageId();
 
             _logger.LogInformation(
-                "FUNCTION_START: {FunctionName} " +
+                "FUNCTION_START: {functionName} " +
                 "(contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}], messageId=[{messageId}])",
                 FUNCTION_NAME, contractId, senderId, tenantId, messageId);
 
@@ -62,7 +62,7 @@ public class ValidateAndStoreFunction(
                         tenantId, messageId, validationResult.ErrorMessages);
 
             _logger.LogInformation(
-                "FUNCTION_END: {FunctionName} => {StatusCode} " +
+                "FUNCTION_END: {functionName} => {StatusCode} " +
                 "(contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}], messageId=[{messageId}])",
                 FUNCTION_NAME, response.StatusCode, contractId, senderId, tenantId, 
                 messageId);
@@ -72,7 +72,7 @@ public class ValidateAndStoreFunction(
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "FUNCTION_EXCEPTION: {FunctionName} {exceptionType} [{exceptionMessage}] " +
+                "FUNCTION_EXCEPTION: {functionName} {exceptionType} [{exceptionMessage}] " +
                 "(contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}])",
                 FUNCTION_NAME, ex.GetType().FullName, ex.Message, contractId, senderId, 
                 tenantId);
