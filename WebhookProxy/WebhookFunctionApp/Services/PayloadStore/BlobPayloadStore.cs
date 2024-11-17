@@ -1,8 +1,8 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using System.Text;
+using System.Text.Json;
 using WebhookFunctionApp.Models;
 using WebhookFunctionApp.Services.BlobService;
 using WebhookFunctionApp.Services.PayloadStore;
@@ -71,7 +71,7 @@ public class BlobPayloadStore : IPayloadStore
         var blobContent = 
             await LoadBlobContentFromUrlAsync(CONTAINER_NAME_ACCEPTED_PAYLOADS, blobUrl);
 
-        var acceptedPayload = JsonConvert.DeserializeObject<AcceptedPayload>(blobContent);
+        var acceptedPayload = JsonSerializer.Deserialize<AcceptedPayload>(blobContent);
 
         return acceptedPayload;
     }
@@ -114,8 +114,8 @@ public class BlobPayloadStore : IPayloadStore
         string messageId,
         T payload) where T : PayloadBase
     {
-        string payloadJsonString = 
-            JsonConvert.SerializeObject(payload, Formatting.Indented);
+        string payloadJsonString =
+            JsonSerializer.Serialize(payload, options: new() { WriteIndented = true });
 
         var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
 

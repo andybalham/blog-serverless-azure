@@ -16,7 +16,10 @@ public class RequestValidator : IRequestValidator
 {
     public RequestValidationResult Validate(string contractId, string requestBody)
     {
-        var contractSchemaJson = EmbeddedResourceReader.ReadEmbeddedFile($"WebhookFunctionApp.Schemas.{contractId}.json");
+        var contractSchemaJson = 
+            EmbeddedResourceReader.ReadEmbeddedFile(
+                $"WebhookFunctionApp.Schemas.{contractId}.json");
+
         var contractSchema = JSchema.Parse(contractSchemaJson);
 
         JObject requestBodyJsonObject;
@@ -34,8 +37,10 @@ public class RequestValidator : IRequestValidator
                 };
 		}
 
-        bool isValid = requestBodyJsonObject.IsValid(contractSchema, out IList<string> errorMessages);
+        bool isValid = 
+            requestBodyJsonObject.IsValid(contractSchema, out IList<string> errorMessages);
 
-        return new RequestValidationResult { IsValid = isValid, ErrorMessages = errorMessages };
+        return 
+            new RequestValidationResult { IsValid = isValid, ErrorMessages = errorMessages };
     }
 }

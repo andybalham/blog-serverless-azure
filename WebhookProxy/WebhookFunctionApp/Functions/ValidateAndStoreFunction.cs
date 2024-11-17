@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using WebhookFunctionApp.Services.PayloadStore;
 using WebhookFunctionApp.Services.RequestValidation;
 using WebhookFunctionApp.Utilities;
@@ -129,7 +129,7 @@ public class ValidateAndStoreFunction(
         await _payloadStore.AddRejectedPayloadAsync(
             tenantId, senderId, contractId, messageId, requestHeaders, requestBodyJson, errorMessages);
 
-        var responseBodyJson = JsonConvert.SerializeObject(errorMessages ?? [], Formatting.Indented);
+        var responseBodyJson = JsonSerializer.Serialize(errorMessages ?? [], options: new() { WriteIndented = true });
 
         HttpResponseData response = req.CreateResponse(HttpStatusCode.BadRequest);
         response.Headers.Add("Content-Type", "application/json");
