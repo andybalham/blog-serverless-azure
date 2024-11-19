@@ -17,74 +17,72 @@ public class DedupeAndForwardFunction
 {
     private readonly ILogger<DedupeAndForwardFunction> _logger;
 
-    private const string FUNCTION_NAME = "DedupeAndForward";
-
     public DedupeAndForwardFunction(ILogger<DedupeAndForwardFunction> logger)
     {
         _logger = logger;
     }
 
-    [Function(FUNCTION_NAME)]
-    public void Run([EventGridTrigger] CloudEvent cloudEvent) // TODO: Mention this is the default
+    [Function(nameof(DedupeAndForwardFunction))]
+    public void Run([EventGridTrigger] EventGridEvent eventGridEvent) // TODO: Mention this is the default
     {
-        _logger.LogDebug("{FunctionName} Version: 241117-1644", FUNCTION_NAME);
+        _logger.LogDebug("{FunctionName} Version: 241117-1644", nameof(DedupeAndForwardFunction));
 
         try
         {
             _logger.LogInformation(
-                "FUNCTION_START: {functionName} " +
-                "Event type: {type}, Event subject: {subject}",
-                FUNCTION_NAME, cloudEvent.Type, cloudEvent.Subject);
+                "FUNCTION_START: " +
+                "Event type: {eventType}, Event subject: {subject}",
+                eventGridEvent.EventType, eventGridEvent.Subject);
 
             _logger.LogDebug(
-                "{functionName} Event: {event}",
-                FUNCTION_NAME, JsonSerializer.Serialize(cloudEvent));
+                "EVENT: {event}",
+                JsonSerializer.Serialize(eventGridEvent));
 
             // Code from: https://learn.microsoft.com/en-us/dotnet/api/overview/azure/messaging.eventgrid-readme?view=azure-dotnet#deserializing-event-data
 
-            if (cloudEvent.TryGetSystemEventData(out object systemEvent))
+            if (eventGridEvent.TryGetSystemEventData(out object systemEvent))
             {
                 switch (systemEvent)
                 {
                     case SubscriptionValidationEventData subscriptionValidated:
                         _logger.LogDebug(
-                            "{functionName} subscriptionValidated.ValidationCode: {code}",
-                            FUNCTION_NAME, subscriptionValidated.ValidationCode);
+                            "subscriptionValidated.ValidationCode: {code}",
+                            subscriptionValidated.ValidationCode);
                         break;
 
                     case StorageBlobCreatedEventData blobCreated:
                         _logger.LogDebug(
-                            "{functionName} blobCreated.Url: {url}", 
-                            FUNCTION_NAME, blobCreated.Url);
+                            "blobCreated.Url: {url}", 
+                            blobCreated.Url);
                         //var acceptedPayload = await _payloadStore.GetAcceptedPayloadAsync(blobCreated.Url);
                         //_logger.LogInformation("acceptedPayload: {acceptedPayload}", JsonSerializer.Serialize(acceptedPayload));
                         break;
 
                     default:
                         _logger.LogError(
-                            "{functionName} Unhandled event type: {eventType}",
-                            FUNCTION_NAME, cloudEvent.Type);
+                            "Unhandled event type: {eventType}",
+                            eventGridEvent.EventType);
                         break;
                 }
             }
             else
             {
                 _logger.LogError(
-                    "{functionName} Unhandled event type: {eventType}",
-                    FUNCTION_NAME, cloudEvent.Type);
+                    "Unhandled event type: {eventType}",
+                    eventGridEvent.EventType);
             }
 
             _logger.LogInformation(
-                "FUNCTION_END: {functionName} " +
-                "Event type: {type}, Event subject: {subject}",
-                FUNCTION_NAME, cloudEvent.Type, cloudEvent.Subject);
+                "FUNCTION_END: " +
+                "Event type: {eventType}, Event subject: {subject}",
+                eventGridEvent.EventType, eventGridEvent.Subject);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "FUNCTION_EXCEPTION: {functionName} {exceptionType} [{exceptionMessage}] " +
-                "Event type: {type}, Event subject: {subject}",
-                FUNCTION_NAME, ex.GetType().FullName, ex.Message, cloudEvent.Type, cloudEvent.Subject);
+                "FUNCTION_EXCEPTION: {exceptionType} [{exceptionMessage}] " +
+                "Event type: {eventType}, Event subject: {subject}",
+                ex.GetType().FullName, ex.Message, eventGridEvent.EventType, eventGridEvent.Subject);
             throw;
         }
     }

@@ -21,12 +21,11 @@ public class ValidateAndStoreFunction(
     private readonly IRequestValidator _requestValidator = requestValidator;
     private readonly IPayloadStore _payloadStore = payloadStore;
 
-    private const string FUNCTION_NAME = "ValidateAndStore";
     private const string FUNCTION_ROUTE = 
         "handle/contract/{contractId}/sender/{senderId}/tenant/{tenantId}";
     private const string MESSAGE_ID_CUSTOM_HEADER = "10PIAC-Message-Id";
 
-    [Function(FUNCTION_NAME)]
+    [Function(nameof(ValidateAndStoreFunction))]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "post", 
             Route = FUNCTION_ROUTE)] HttpRequestData request,
@@ -34,16 +33,16 @@ public class ValidateAndStoreFunction(
         string senderId,
         string tenantId)
     {
-        _logger.LogInformation($"{FUNCTION_NAME} Version: 241112-1813");
+        _logger.LogInformation("{functionName} Version: 241112-1813", nameof(ValidateAndStoreFunction));
 
         try
         {
             var messageId = GetMessageId();
 
             _logger.LogInformation(
-                "FUNCTION_START: {functionName} " +
+                "FUNCTION_START: " +
                 "(contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}], messageId=[{messageId}])",
-                FUNCTION_NAME, contractId, senderId, tenantId, messageId);
+                contractId, senderId, tenantId, messageId);
 
             var requestHeaders = GetHeaders(request);
             var requestBodyJson = 
@@ -62,9 +61,9 @@ public class ValidateAndStoreFunction(
                         tenantId, messageId, validationResult.ErrorMessages);
 
             _logger.LogInformation(
-                "FUNCTION_END: {functionName} => {StatusCode} " +
+                "FUNCTION_END: => {StatusCode} " +
                 "(contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}], messageId=[{messageId}])",
-                FUNCTION_NAME, response.StatusCode, contractId, senderId, tenantId, 
+                response.StatusCode, contractId, senderId, tenantId, 
                 messageId);
 
             return response;
@@ -72,9 +71,9 @@ public class ValidateAndStoreFunction(
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "FUNCTION_EXCEPTION: {functionName} {exceptionType} [{exceptionMessage}] " +
+                "FUNCTION_EXCEPTION: {exceptionType} [{exceptionMessage}] " +
                 "(contractId=[{contractId}], senderId=[{senderId}], tenantId=[{tenantId}])",
-                FUNCTION_NAME, ex.GetType().FullName, ex.Message, contractId, senderId, 
+                ex.GetType().FullName, ex.Message, contractId, senderId, 
                 tenantId);
             throw;
         }
