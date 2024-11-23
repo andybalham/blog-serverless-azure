@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -8,7 +9,8 @@ using WebhookFunctionApp.Services.RequestStore;
 using WebhookFunctionApp.Services.RequestValidation;
 
 var host = new HostBuilder()
-    .ConfigureFunctionsWorkerDefaults()
+    .ConfigureFunctionsWebApplication()
+    //.ConfigureFunctionsWorkerDefaults()
     .ConfigureAppConfiguration((context, config) =>
     {
         var env = context.HostingEnvironment;  // BLOG: Loading different settings based on environment
@@ -31,6 +33,14 @@ var host = new HostBuilder()
         services.AddSingleton<IRequestValidator, RequestValidator>();
         services.AddSingleton<IPayloadStore, BlobPayloadStore>();
         services.AddSingleton<IBlobServiceClientFactory, BlobServiceClientFactory>();
+
+        // ConfigureFunctionsWebApplication
+        services.AddOptions<KestrelServerOptions>()
+            .Configure<IConfiguration>((settings, configuration) =>
+                {
+                    settings.AllowSynchronousIO = true;
+                    configuration.Bind(settings);
+                });
     })
     .Build();
 

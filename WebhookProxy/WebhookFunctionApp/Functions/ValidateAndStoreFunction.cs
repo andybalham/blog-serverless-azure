@@ -21,14 +21,13 @@ public class ValidateAndStoreFunction(
     private readonly IRequestValidator _requestValidator = requestValidator;
     private readonly IPayloadStore _payloadStore = payloadStore;
 
-    private const string FUNCTION_ROUTE = 
-        "handle/contract/{contractId}/sender/{senderId}/tenant/{tenantId}";
     private const string MESSAGE_ID_CUSTOM_HEADER = "10PIAC-Message-Id";
 
     [Function(nameof(ValidateAndStoreFunction))]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "post", 
-            Route = FUNCTION_ROUTE)] HttpRequestData request,
+            Route = "handle/contract/{contractId}/sender/{senderId}/tenant/{tenantId}"
+        )] HttpRequestData request,
         string contractId,
         string senderId,
         string tenantId)

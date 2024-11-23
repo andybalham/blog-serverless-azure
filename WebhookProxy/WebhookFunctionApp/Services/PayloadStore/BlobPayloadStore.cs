@@ -71,6 +71,11 @@ public class BlobPayloadStore : IPayloadStore
         var blobContent = 
             await LoadBlobContentFromUrlAsync(CONTAINER_NAME_ACCEPTED_PAYLOADS, blobUrl);
 
+        if (blobContent == null)
+        {
+            // TODO: Throw an exception? Does LoadBlobContentFromUrlAsync throw an exception? Should we ensure no exception is raised, as we do not want this event being retried.
+        }
+
         var acceptedPayload = JsonSerializer.Deserialize<AcceptedPayload>(blobContent);
 
         return acceptedPayload;

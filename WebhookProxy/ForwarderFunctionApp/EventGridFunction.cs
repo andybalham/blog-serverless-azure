@@ -17,7 +17,7 @@ namespace ForwarderFunctionApp
             _logger = logger;
         }
 
-        [Function(nameof(EventGridFunction))]
+        //[Function(nameof(EventGridFunction))]
         public void Run([EventGridTrigger] CloudEvent cloudEvent)
         {
             _logger.LogInformation("Event type: {type}, Event subject: {subject}", cloudEvent.Type, cloudEvent.Subject);

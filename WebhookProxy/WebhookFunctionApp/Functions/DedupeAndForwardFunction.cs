@@ -23,9 +23,9 @@ public class DedupeAndForwardFunction
     }
 
     [Function(nameof(DedupeAndForwardFunction))]
-    public void Run([EventGridTrigger] EventGridEvent eventGridEvent) // TODO: Mention this is the default
+    public void Run([EventGridTrigger] EventGridEvent eventGridEvent)
     {
-        _logger.LogDebug("{FunctionName} Version: 241117-1644", nameof(DedupeAndForwardFunction));
+        _logger.LogDebug("{FunctionName} Version: 241123-1444", nameof(DedupeAndForwardFunction));
 
         try
         {
@@ -37,6 +37,8 @@ public class DedupeAndForwardFunction
             _logger.LogDebug(
                 "EVENT: {event}",
                 JsonSerializer.Serialize(eventGridEvent));
+
+            _logger.LogDebug("DATA: {data}", eventGridEvent.Data.ToString());
 
             // Code from: https://learn.microsoft.com/en-us/dotnet/api/overview/azure/messaging.eventgrid-readme?view=azure-dotnet#deserializing-event-data
 
