@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using WebhookFunctionApp.Services.PayloadStore;
 using System.Diagnostics.Contracts;
 using WebhookFunctionApp.Models;
+using WebhookFunctionApp.Services.EndpointProxy;
 
 namespace WebhookFunctionApp.Functions;
 
@@ -18,19 +19,22 @@ public class DedupeAndForwardFunction
 {
     private readonly ILogger<DedupeAndForwardFunction> _logger;
     private readonly IPayloadStore _payloadStore;
+    private readonly IEndpointProxyFactory _endpointProxyFactory;
 
     public DedupeAndForwardFunction(
         ILogger<DedupeAndForwardFunction> logger,
-        IPayloadStore payloadStore)
+        IPayloadStore payloadStore,
+        IEndpointProxyFactory endpointProxyFactory)
     {
         _logger = logger;
         _payloadStore = payloadStore;
+        _endpointProxyFactory = endpointProxyFactory;
     }
 
     [Function(nameof(DedupeAndForwardFunction))]
     public async Task RunAsync([EventGridTrigger] EventGridEvent eventGridEvent)
     {
-        _logger.LogDebug("{FunctionName} Version: 241123-1444", nameof(DedupeAndForwardFunction));
+        _logger.LogDebug("{FunctionName} Version: 241124-1146", nameof(DedupeAndForwardFunction));
 
         try
         {
@@ -83,13 +87,15 @@ public class DedupeAndForwardFunction
 
                     var acceptedPayload = 
                         await _payloadStore.GetAcceptedPayloadAsync(blobCreated.Url);
+
                     _logger.LogInformation(
                         "acceptedPayload: {acceptedPayload}", 
                         JsonSerializer.Serialize(acceptedPayload));
 
                     var endpointProxy = 
-                        GetEndpointProxy(
+                        _endpointProxyFactory.GetEndpointProxy(
                             acceptedPayload.TenantId, acceptedPayload.ContractId);
+
                     await endpointProxy.InvokeAsync(acceptedPayload.Body);
 
                     break;
@@ -107,26 +113,5 @@ public class DedupeAndForwardFunction
                 "Unhandled event type: {eventType}",
                 eventGridEvent.EventType);
         }
-    }
-
-    private IEndpointProxy GetEndpointProxy(string tenantId, string contractId)
-    {
-        // TODO: Inject a EndpointProxyFactory and have that return the proxy
-        return new MockEndpointProxy(_logger, contractId, tenantId);
-    }
-}
-
-public interface IEndpointProxy
-{
-    Task InvokeAsync(string payload);
-}
-
-class MockEndpointProxy(ILogger logger, string tenantId, string contractId) : IEndpointProxy
-{
-    public Task InvokeAsync(string payload)
-    {
-        logger.LogDebug("{className} handling payload for tenantId [{tenantId}], contractId [{contractId}]: [{payload}] ", 
-            nameof(MockEndpointProxy), tenantId, contractId, payload);
-        return Task.CompletedTask;
     }
 }

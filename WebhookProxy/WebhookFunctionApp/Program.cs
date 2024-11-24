@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using WebhookFunctionApp.Services.BlobService;
+using WebhookFunctionApp.Services.EndpointProxy;
 using WebhookFunctionApp.Services.PayloadStore;
 using WebhookFunctionApp.Services.RequestStore;
 using WebhookFunctionApp.Services.RequestValidation;
@@ -11,7 +12,7 @@ using WebhookFunctionApp.Services.RequestValidation;
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
     //.ConfigureFunctionsWorkerDefaults() <== Why did this start to fail?
-    .ConfigureAppConfiguration((context, config) =>
+    .ConfigureAppConfiguration((context, config) => // <== Required settings.AllowSynchronousIO = true
     {
         var env = context.HostingEnvironment;  // BLOG: Loading different settings based on environment
 
@@ -33,6 +34,7 @@ var host = new HostBuilder()
         services.AddSingleton<IRequestValidator, RequestValidator>();
         services.AddSingleton<IPayloadStore, BlobPayloadStore>();
         services.AddSingleton<IBlobServiceClientFactory, BlobServiceClientFactory>();
+        services.AddSingleton<IEndpointProxyFactory, EndpointProxyFactory>();
 
         // Thanks: https://stackoverflow.com/questions/78408121/net-8-azure-function-configurefunctionswebapplication-and-synchronous-operati
         services.AddOptions<KestrelServerOptions>()
