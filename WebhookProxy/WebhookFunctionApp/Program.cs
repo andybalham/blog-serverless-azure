@@ -10,7 +10,7 @@ using WebhookFunctionApp.Services.RequestValidation;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
-    //.ConfigureFunctionsWorkerDefaults()
+    //.ConfigureFunctionsWorkerDefaults() <== Why did this start to fail?
     .ConfigureAppConfiguration((context, config) =>
     {
         var env = context.HostingEnvironment;  // BLOG: Loading different settings based on environment
@@ -34,7 +34,7 @@ var host = new HostBuilder()
         services.AddSingleton<IPayloadStore, BlobPayloadStore>();
         services.AddSingleton<IBlobServiceClientFactory, BlobServiceClientFactory>();
 
-        // ConfigureFunctionsWebApplication
+        // Thanks: https://stackoverflow.com/questions/78408121/net-8-azure-function-configurefunctionswebapplication-and-synchronous-operati
         services.AddOptions<KestrelServerOptions>()
             .Configure<IConfiguration>((settings, configuration) =>
                 {

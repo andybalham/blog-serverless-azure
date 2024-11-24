@@ -68,15 +68,15 @@ public class BlobPayloadStore : IPayloadStore
 
     public async Task<AcceptedPayload> GetAcceptedPayloadAsync(string blobUrl)
     {
-        var blobContent = 
-            await LoadBlobContentFromUrlAsync(CONTAINER_NAME_ACCEPTED_PAYLOADS, blobUrl);
+        // TODO: Should we throw a specific exception here? To indicate no retry
 
-        if (blobContent == null)
-        {
-            // TODO: Throw an exception? Does LoadBlobContentFromUrlAsync throw an exception? Should we ensure no exception is raised, as we do not want this event being retried.
-        }
+        var blobContent =
+            await LoadBlobContentFromUrlAsync(CONTAINER_NAME_ACCEPTED_PAYLOADS, blobUrl) 
+            ?? throw new Exception($"Blob content was null for url: {blobUrl}");
 
-        var acceptedPayload = JsonSerializer.Deserialize<AcceptedPayload>(blobContent);
+        var acceptedPayload = 
+            JsonSerializer.Deserialize<AcceptedPayload>(blobContent) 
+            ?? throw new Exception($"Blob content deserialized to null: {blobContent}");
 
         return acceptedPayload;
     }

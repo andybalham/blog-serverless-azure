@@ -23,6 +23,7 @@ public class ValidateAndStoreFunction(
 
     private const string MESSAGE_ID_CUSTOM_HEADER = "10PIAC-Message-Id";
 
+    // TODO: Do we even want to have senderId in the webhook URL?
     [Function(nameof(ValidateAndStoreFunction))]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "post", 

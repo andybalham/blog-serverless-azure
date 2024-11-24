@@ -56,7 +56,7 @@ public class EventGridFunction
                     WriteIndented = true
                 });
         _logger.LogInformation($"Full event:\n{eventSystemTextJson}");
-
+/*
         var eventJsonNewtonsoft = """
              {
                 "Data": {
@@ -88,7 +88,7 @@ public class EventGridFunction
                 "Url": "https://webhookstorageclickops.blob.core.windows.net/webhook-payloads-accepted/LovelyLoans/QuickValuationCo/2024-11-12/2024-11-12T18:23:39UTC-e57ddd5d-5f47-4621-83e5-b7997766c573.json"
             }
             """;
-
+*/
         // Code from: https://learn.microsoft.com/en-us/dotnet/api/overview/azure/messaging.eventgrid-readme?view=azure-dotnet#deserializing-event-data
 
         // If the event is a system event, TryGetSystemEventData will return the deserialized system event

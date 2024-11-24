@@ -20,16 +20,20 @@ public class MockEndpointFunction
     [Function(nameof(MockEndpointFunction))]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "post",
-        Route = "mock-endpoint"
-    )] HttpRequestData request)
+        Route = "mock-endpoint/tenant/{tenantId}/contract/{contractId}"
+    )] HttpRequestData request,
+        string tenantId,
+        string senderId)
     {
-        _logger.LogInformation("{functionName} Version: 241123-1016", nameof(MockEndpointFunction));
+        _logger.LogInformation("{functionName} Version: 241124-0944", nameof(MockEndpointFunction));
 
         try
         {
             _logger.LogInformation(
                 "FUNCTION_START: " +
-                "()");
+                "(tenantId=[{tenantId}], senderId=[{senderId}])",
+                senderId, tenantId
+                );
 
             var requestBodyJson =
                 StreamToStringConverter.ConvertStreamToString(request.Body);
@@ -45,8 +49,8 @@ public class MockEndpointFunction
 
             _logger.LogInformation(
                 "FUNCTION_END: => {StatusCode} " +
-                "()",
-                response.StatusCode);
+                "(tenantId=[{tenantId}], senderId=[{senderId}])",
+                response.StatusCode, senderId, tenantId);
 
             return response;
         }
@@ -54,8 +58,8 @@ public class MockEndpointFunction
         {
             _logger.LogError(ex,
                 "FUNCTION_EXCEPTION: {exceptionType} [{exceptionMessage}] " +
-                "()",
-                ex.GetType().FullName, ex.Message);
+                "(tenantId=[{tenantId}], senderId=[{senderId}])",                
+                ex.GetType().FullName, ex.Message, senderId, tenantId);
             throw;
         }
     }
