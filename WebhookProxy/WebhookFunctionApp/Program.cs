@@ -36,6 +36,11 @@ var host = new HostBuilder()
         services.AddSingleton<IBlobServiceClientFactory, BlobServiceClientFactory>();
         services.AddSingleton<IEndpointProxyFactory, EndpointProxyFactory>();
 
+        // Add HttpClient factory
+        services.AddHttpClient();
+        // Register ApiClient as a service
+        services.AddScoped<ApiClient>();
+
         // Thanks: https://stackoverflow.com/questions/78408121/net-8-azure-function-configurefunctionswebapplication-and-synchronous-operati
         services.AddOptions<KestrelServerOptions>()
             .Configure<IConfiguration>((settings, configuration) =>

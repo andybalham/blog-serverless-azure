@@ -62,7 +62,8 @@ public class DedupeAndForwardFunction
                 "FUNCTION_EXCEPTION: {exceptionType} [{exceptionMessage}] " +
                 "Event type: {eventType}, Event subject: {subject}",
                 ex.GetType().FullName, ex.Message, eventGridEvent.EventType, eventGridEvent.Subject);
-            throw;
+            // Don't throw be default, as this retries
+            //throw;
         }
     }
 

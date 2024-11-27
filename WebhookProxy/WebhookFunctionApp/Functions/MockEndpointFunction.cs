@@ -18,7 +18,7 @@ public class MockEndpointFunction
     }
 
     [Function(nameof(MockEndpointFunction))]
-    public async Task<HttpResponseData> Run(
+    public HttpResponseData Run(
         [HttpTrigger(AuthorizationLevel.Function, "post",
         Route = "mock-endpoint/tenant/{tenantId}/contract/{contractId}"
     )] HttpRequestData request,
